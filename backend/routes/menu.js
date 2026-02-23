@@ -1,21 +1,22 @@
 const express = require('express')
 const router = express.Router()
-const { menuItems } = require('../data/mockData')
+const { menuItems, restaurants } = require('../data/mockData')
 
-// GET all menu items
-router.get('/', (req, res) => {
-  res.json(menuItems)
-})
+// GET restaurant by slug + their menu
+router.get('/:slug', (req, res) => {
+  const restaurant = restaurants.find(r => r.slug === req.params.slug)
 
-// GET single menu item by id
-router.get('/:id', (req, res) => {
-  const item = menuItems.find(item => item.id === parseInt(req.params.id))
-
-  if (!item) {
-    return res.status(404).json({ message: 'Menu item not found' })
+  if (!restaurant) {
+    return res.status(404).json({ message: 'Restaurant not found' })
   }
 
-  res.json(item)
+  if (!restaurant.isApproved) {
+    return res.status(403).json({ message: 'Restaurant not approved' })
+  }
+
+  const menu = menuItems.filter(item => item.restaurantId === restaurant.id && item.isAvailable)
+
+  res.json({ restaurant, menu })
 })
 
 module.exports = router
