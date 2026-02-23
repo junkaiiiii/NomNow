@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { useCartStore } from '@/store/cartStore'
 import { useSearchParams } from 'next/navigation'
 import { Restaurant, MenuItem, CartItem } from '@/app/types'
 import MenuCard from '@/components/MenuCard'
@@ -13,39 +14,16 @@ type Props = {
 }
 
 export default function MenuClient({ restaurant, menu }: Props) {
-    const [cart, setCart] = useState<CartItem[]>([])
     const searchParams = useSearchParams()
     const tableNumber = searchParams.get('table')
 
+    const { cart, addToCart, removeFromCart, setTable, slug } = useCartStore()
 
-    //helper functions
-    function addToCart(item: MenuItem) {
-        setCart(prev => {
-            const existing = prev.find(ci => ci.id === item.id)
-
-            if (existing) {
-                return prev.map(ci => ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci)
-            }
-
-            return [...prev, { ...item, quantity: 1 }]
-        })
-    }
-
-    function removeFromCart(itemId: number) {
-        setCart(prev => {
-            const existing = prev.find(i => i.id === itemId)
-            if (!existing) {
-                return prev
-            }
-
-            if (existing.quantity === 1) {
-                return prev.filter(i => i.id !== itemId)
-            }
-
-            return prev.map(ci => ci.id === itemId ? { ...ci, quantity: ci.quantity - 1 } : ci)
-
-        })
-    }
+    useEffect(() => {
+        if (tableNumber) {
+          setTable(tableNumber, restaurant.slug)
+        }
+      }, [tableNumber, restaurant.slug])
 
     function getQuantity(itemId: number) {
         const item = cart.find(i => i.id === itemId)
@@ -85,6 +63,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                     <RestaurantHeader
                         name={restaurant.name}
                         address={restaurant.address}
+                        goBack={false}
                     />
                     {categories.map(cat => (
                         <div key={cat}>
@@ -109,6 +88,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                         cartQuantity={getCartQuantity()}
                         totalAmount={getTotalAmount()}
                         tableNumber={tableNumber}
+                        slug={slug}
                     />
                 </div>
             </div>
