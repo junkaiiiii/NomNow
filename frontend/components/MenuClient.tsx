@@ -30,28 +30,6 @@ export default function MenuClient({ restaurant, menu }: Props) {
         return item ? item.quantity : 0
     }
 
-    function getCartQuantity() {
-        let total = 0
-
-        cart.forEach(item => {
-            total += item.quantity
-        });
-
-        return total
-    }
-
-    function getTotalAmount() {
-        let total = 0
-
-        cart.forEach(item => {
-            total += item.price * item.quantity
-        });
-
-        return total
-    }
-
-
-
     const categories = [...new Set(menu.map(item => item.category))]
 
 
@@ -84,12 +62,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                     ))
                     }
 
-                    <CartBar
-                        cartQuantity={getCartQuantity()}
-                        totalAmount={getTotalAmount()}
-                        tableNumber={tableNumber}
-                        slug={slug}
-                    />
+                    <CartBar/>
                 </div>
             </div>
         </>

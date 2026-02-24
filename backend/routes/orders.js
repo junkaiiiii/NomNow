@@ -1,23 +1,36 @@
 const express = require('express')
 const router = express.Router()
-const { orders, menuItems } = require('../data/mockData')
+const { orders, menuItems, restaurants } = require('../data/mockData')
 
-// GET all orders
-router.get('/', (req, res) => {
-  res.json(orders)
+// GET all orders of a table
+router.get('/slug/:slug/table/:table', (req, res) => {
+  const result = orders.filter(o => {
+    o.slug === req.params.slug && o.table === parseInt(req.params.table)
+  })
+
+  res.json(result)
+})
+
+// GET order by id
+router.get('/:id', (req, res) => {
+  const order = orders.find(o => o.id === parseInt(req.params.id))
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' })
+  }
+  res.json(order)
 })
 
 // POST create new order
 router.post('/', (req, res) => {
-  const { customerName, items } = req.body
+  const { slug, table, items } = req.body
   // items expected as array: [{ menuItemId: 1, quantity: 2 }]
 
-  if (!customerName || !items || items.length === 0) {
-    return res.status(400).json({ message: 'customerName and items are required' })
+  if (!slug || !table || !items || items.length === 0) {
+    return res.status(400).json({ message: 'slug, table and items are required' })
   }
 
   const orderItems = items.map(i => {
-    const menuItem = menuItems.find(m => m.id === i.menuItemId)
+    const menuItem = menuItems.find(m => m.id === i.menuItemId) //mock data
     return {
       menuItem,
       quantity: i.quantity,
@@ -35,7 +48,8 @@ router.post('/', (req, res) => {
 
   const newOrder = {
     id: orders.length + 1,
-    customerName,
+    slug,
+    table,
     items: orderItems,
     total,
     status: 'Pending',

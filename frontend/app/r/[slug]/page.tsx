@@ -1,5 +1,6 @@
 import MenuClient from '@/components/MenuClient'
 import { Restaurant, MenuItem } from '@/app/types'
+import Loading from './loading'
 
 type PageProps = {
     params: Promise<{ slug: string }>
@@ -21,9 +22,12 @@ export default async function MenuPage({ params }: PageProps) {
     const data: {restaurant: Restaurant; menu : MenuItem[]} = await res.json()
 
     return  (
+        <>
         <MenuClient
             restaurant={data.restaurant}
             menu={data.menu}
         />
+        </>
+        
     )
 }
