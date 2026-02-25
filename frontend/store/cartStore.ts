@@ -1,16 +1,17 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CartItem, MenuItem } from "@/app/types"
+import { CartItem, MenuItem, Restaurant } from "@/app/types"
 
 type CartStore = {
     cart: CartItem[]
     tableNumber: string | null
-    slug: string | null
+    restaurant: Restaurant | null
 
-    setTable: (table: string, slug: string) => void
+    setTable: (table: string, restaurant: Restaurant) => void
     addToCart: (item: MenuItem) => void
     removeFromCart: (itemId: number) => void
     clearCart: () => void
+    clearTable: () => void
 }
 
 export const useCartStore = create<CartStore>()(
@@ -18,9 +19,9 @@ export const useCartStore = create<CartStore>()(
         (set) => ({
             cart: [],
             tableNumber: null,
-            slug: null,
+            restaurant: null,
 
-            setTable: (table, slug) => set({ tableNumber: table, slug: slug }),
+            setTable: (table, restaurant) => set({ tableNumber: table, restaurant: restaurant }),
 
             addToCart: (item) => set((state) => {
                 const existing = state.cart.find(ci => ci.id === item.id)
@@ -47,8 +48,9 @@ export const useCartStore = create<CartStore>()(
                 }
             }),
 
-            clearCart: () => set({ cart: [], tableNumber: null, slug: null })
+            clearCart: () => set({ cart: [], tableNumber: null, restaurant: null }),
 
+            clearTable: () => set({tableNumber:null})
         }),
         {
             name: 'nomnow-cart', // localStorage key

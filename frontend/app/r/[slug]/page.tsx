@@ -1,6 +1,5 @@
 import MenuClient from '@/components/MenuClient'
 import { Restaurant, MenuItem } from '@/app/types'
-import Loading from './loading'
 
 type PageProps = {
     params: Promise<{ slug: string }>

@@ -7,19 +7,45 @@ import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation";
 
 export default function CartPage() {
-    const { cart, tableNumber, slug, clearCart } = useCartStore();
+    const { cart, tableNumber, restaurant, clearCart } = useCartStore()
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
 
     const cartTotal = cart.reduce((sum, i) => (sum + i.price * i.quantity), 0)
 
+   
+
+    // Guard — if no restaurant in store, redirect back
+    if (!restaurant) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+                <p className="text-gray-500">No active session</p>
+                <button
+                    onClick={() => router.push('/')}
+                    className="bg-black text-white px-6 py-3 rounded-xl"
+                >
+                    Go Home
+                </button>
+            </div>
+        )
+    }
+
+    // After this point TypeScript KNOWS restaurant is not null
+    // You can safely use restaurant.id, restaurant.name etc
+
     // submit order
     async function handleSubmitOrder() {
         setSubmitting(true);
 
-        if (!slug) { setError("Slug is needed to submit order.") }
-        if (!tableNumber) { setError("Table number is needed to submit order") }
+        if (!restaurant) { 
+            setError("Slug is needed to submit order.")
+            return 
+         }
+        if (!tableNumber) { 
+            setError("Table number is needed to submit order")
+            return
+         }
 
         const items = cart.map(item => {
             return (
@@ -41,8 +67,8 @@ export default function CartPage() {
                 method: 'POST',
                 body: JSON.stringify(
                     {
-                        slug: slug,
-                        table: tableNumber,
+                        restaurantId: restaurant.id,
+                        table: parseInt(tableNumber),
                         items: items
                     }
                 )
@@ -51,6 +77,7 @@ export default function CartPage() {
             if (!res.ok) throw new Error('Failed to place order')
 
             const order = await res.json()
+            setSubmitting(false);
             console.log(order);
             clearCart()
             // router.push(`/r/${slug}/order/${order.id}`)
@@ -65,10 +92,10 @@ export default function CartPage() {
         return (
             <div className="min-h-screen bg-gray-50 pb-32">
                 <RestaurantHeader
-                        name="View Cart"
-                        address=""
-                        goBack={true}
-                    />
+                    name="View Cart"
+                    address=""
+                    goBack={true}
+                />
                 <div className="max-w-2xl mx-auto px-4 py-5 space-y-8 ">
                     <div className="flex justify-center items-center min-h-screen flex-col space-y-5">
                         <h1 className='text-xl font-bold'>Cart is Empty...</h1>

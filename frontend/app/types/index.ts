@@ -29,8 +29,7 @@ export type OrderItem = {
 export type Order = {
     id: number
     restaurantId: number
-    tableId: number
-    customerName: string
+    tableNumber: number
     items: OrderItem[]
     total: number
     status: 'Pending' | 'Preparing' | 'Ready' | 'Delivered'

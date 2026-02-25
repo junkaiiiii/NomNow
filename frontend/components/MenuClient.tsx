@@ -17,13 +17,15 @@ export default function MenuClient({ restaurant, menu }: Props) {
     const searchParams = useSearchParams()
     const tableNumber = searchParams.get('table')
 
-    const { cart, addToCart, removeFromCart, setTable, slug } = useCartStore()
+    const { cart, addToCart, removeFromCart, setTable, clearTable } = useCartStore()
 
     useEffect(() => {
         if (tableNumber) {
-          setTable(tableNumber, restaurant.slug)
+            setTable(tableNumber, restaurant)
+        } else {
+            clearTable();
         }
-      }, [tableNumber, restaurant.slug])
+    }, [tableNumber, restaurant])
 
     function getQuantity(itemId: number) {
         const item = cart.find(i => i.id === itemId)
@@ -62,7 +64,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                     ))
                     }
 
-                    <CartBar/>
+                    <CartBar />
                 </div>
             </div>
         </>
