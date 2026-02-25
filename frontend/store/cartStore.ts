@@ -9,7 +9,7 @@ type CartStore = {
 
     setTable: (table: string, restaurant: Restaurant) => void
     addToCart: (item: MenuItem) => void
-    removeFromCart: (itemId: number) => void
+    removeFromCart: (itemId: string) => void
     clearCart: () => void
     clearTable: () => void
 }
