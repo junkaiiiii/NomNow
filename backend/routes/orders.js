@@ -34,11 +34,19 @@ router.get('/', (req, res) => {
   res.json(orders)
 })
 
-
+// {
+//   restaurantId: restaurant.id,
+//   table: parseInt(tableNumber),
+//   items: items,
+//   sstAmount: priceBreakdown.sstAmount,
+//   serviceTaxAmount: priceBreakdown.serviceTaxAmount,
+//   subtotal: priceBreakdown.subtotal,
+//   total: priceBreakdown.total
+// }
 // POST create new order
 router.post('/', (req, res) => {
-  const { restaurantId, table, items } = req.body
-  // items expected as array: [{ menuItemId: 1, quantity: 2 }]
+  const { restaurantId, table, items, sstAmount, serviceTaxAmount, subtotal, total } = req.body
+  // items expected as array: [{ menuItemId: 1, quantity: 2, unitPrice?: 12, selectedAddOns?: [], preference?: "" }]
 
   if (!restaurantId || table === undefined || table === null || !items || items.length === 0) {
     return res.status(400).json({ message: 'slug, table and items are required' })
@@ -50,31 +58,44 @@ router.post('/', (req, res) => {
       throw new Error(`Menu item ${i.menuItemId} not found`)
     }
 
+    const unitPrice = typeof i.unitPrice === 'number' ? i.unitPrice : menuItem.price
+
     return {
       menuItem,
       quantity: i.quantity,
-      subtotal: menuItem.price * i.quantity
+      unitPrice,
+      selectedAddOns: Array.isArray(i.selectedAddOns) ? i.selectedAddOns : [],
+      preference: typeof i.preference === 'string' ? i.preference : '',
+      subtotal: unitPrice * i.quantity
     }
   })
 
-  let total = 0
-
-  orderItems.forEach((i) => {
-    total += i.subtotal;
-  });
-
   // const total = orderItems.reduce((sum, i) => sum + i.subtotal, 0)
-
-  //TODO: need finalize order format
+//   export type Order = {
+//     id: string
+//     restaurantId: string
+//     tableNumber: number
+//     items: OrderItem[]
+//     status: 'Pending' | 'Preparing' | 'Ready' | 'Delivered'
+//     createdAt: string
+//     sstAmount: number
+//     serviceTaxAmount: number
+//     subtotal: number //subtotal = total without tax
+//     total: number //total = sum(sst,serviceTax,subtotal)
+// }
 
   const newOrder = {
-    id: orders.length + 1,
+    id: (orders.length + 1).toString(),
     restaurantId: restaurantId,
     table: table,
     items: orderItems,
-    total,
+    subtotal: subtotal,
     status: 'Pending',
-    createdAt: new Date()
+    createdAt: new Date(),
+    sstAmount: sstAmount,
+    serviceTaxAmount: serviceTaxAmount,
+    subtotal: subtotal,
+    total: total
   }
 
   orders.push(newOrder)

@@ -1,7 +1,7 @@
-export type taxConfig = {
+export type TaxConfig = {
     sst: number //rate
     serviceTax: number //rate
-    taxInclusive: boolean
+    sstInclusive: boolean
 }
 
 export type Restaurant = {
@@ -10,26 +10,47 @@ export type Restaurant = {
     slug: string
     address: string
     isApproved: boolean
-    taxConfig: taxConfig
+    taxConfig: TaxConfig
 }
 
 export type MenuItem = {
     id: string
-    restaurantId: number
+    restaurantId: string | number
     name: string
     description: string
     price: number
     category: string
     isAvailable: boolean
+    addOns?: AddOnOption[]
+    preferenceHints?: string[]
+    imageUrl: string
 }
 
-export type CartItem = MenuItem & {
+export type AddOnOption = {
+    id: string
+    name: string
+    price: number
+}
+
+export type ItemCustomization = {
+    selectedAddOns: AddOnOption[]
+    preference: string
+}
+
+export type CartItem = Omit<MenuItem, "id" | "price"> & ItemCustomization & {
+    id: string // cart line id
+    menuItemId: string
+    basePrice: number
+    unitPrice: number
     quantity: number
 }
 
 export type OrderItem = {
     menuItem: MenuItem
     quantity: number
+    unitPrice?: number
+    selectedAddOns?: AddOnOption[]
+    preference?: string
     subtotal: number
 }
 
@@ -38,9 +59,12 @@ export type Order = {
     restaurantId: string
     tableNumber: number
     items: OrderItem[]
-    total: number
     status: 'Pending' | 'Preparing' | 'Ready' | 'Delivered'
     createdAt: string
+    sstAmount: number
+    serviceTaxAmount: number
+    subtotal: number //subtotal = total without tax
+    total: number //total = sum(sst,serviceTax,subtotal)
 }
 
 export type Table = {

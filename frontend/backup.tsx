@@ -1,8 +1,9 @@
+// @ts-nocheck
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Restaurant, MenuItem, CartItem } from '@/app/types'
+import { Restaurant, MenuItem, CartItem } from '@/types'
 import MenuCard from '@/components/MenuCard'
 
 export default function RestaurantPage() {

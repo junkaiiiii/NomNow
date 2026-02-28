@@ -6,9 +6,9 @@ const restaurants = [
       address: 'Jalan Ipoh, Kuala Lumpur',
       isApproved: true,
       taxConfig: {
-        sst: 0,           
-        serviceTax: 0,    
-        taxInclusive: false  
+        sst: 0.06,           
+        serviceTax: 0.1,    
+        sstInclusive: true
       }
     },
     {
@@ -20,7 +20,7 @@ const restaurants = [
       taxConfig: {
         sst: 0.06,        
         serviceTax: 0.10,   
-        taxInclusive: false
+        sstInclusive: true
       }
     },
     {
@@ -32,24 +32,60 @@ const restaurants = [
       taxConfig: {
         sst: 0.06,
         serviceTax: 0.10,
-        taxInclusive: true  
+        sstInclusive: true  
       }
     }
   ]
 
-const menuItems = [
+const CATEGORY_ADD_ONS = {
+    drinks: [
+      { id: "less-ice", name: "Less Ice", price: 0 },
+      { id: "extra-milk", name: "Extra Milk", price: 1 },
+      { id: "extra-shot", name: "Extra Shot", price: 2 },
+    ],
+    noodles: [
+      { id: "extra-egg", name: "Extra Egg", price: 1.5 },
+      { id: "extra-sambal", name: "Extra Sambal", price: 1 },
+      { id: "add-cheese", name: "Add Cheese", price: 2 },
+    ],
+    bread: [
+      { id: "double-curry", name: "Double Curry", price: 1.5 },
+      { id: "extra-dhal", name: "Extra Dhal", price: 1 },
+      { id: "add-egg", name: "Add Egg", price: 1.5 },
+    ],
+    rice: [
+      { id: "extra-rice", name: "Extra Rice", price: 2 },
+      { id: "extra-curry", name: "Extra Curry", price: 1.5 },
+      { id: "add-egg", name: "Add Egg", price: 1.5 },
+    ],
+}
+
+const DEFAULT_PREFERENCE_HINTS = [
+  "No onion",
+  "No spicy",
+  "Extra spicy",
+  "Less sugar",
+]
+
+const baseMenuItems = [
     // Mamak Bistro menu
-    { id: '1', restaurantId: '1', name: "Roti Canai", category: "Bread", price: 3, description: "Crispy flatbread with dhal curry", isAvailable: true },
-    { id: '2', restaurantId: '1', name: "Teh Tarik", category: "Drinks", price: 3.5, description: "Classic pulled milk tea", isAvailable: true },
-    { id: '3', restaurantId: '1', name: "Mee Goreng Mamak", category: "Noodles", price: 10, description: "Spicy fried noodles with egg", isAvailable: true },
-    { id: '4', restaurantId: '1', name: "Maggi Goreng", category: "Noodles", price: 8, description: "Fried instant noodles mamak style", isAvailable: true },
+    { id: '1', restaurantId: '1', name: "Roti Canai", category: "Bread", price: 3, description: "Crispy flatbread with dhal curry", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
+    { id: '2', restaurantId: '1', name: "Teh Tarik", category: "Drinks", price: 3.5, description: "Classic pulled milk tea", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
+    { id: '3', restaurantId: '1', name: "Mee Goreng Mamak", category: "Noodles", price: 10, description: "Spicy fried noodles with egg", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
+    { id: '4', restaurantId: '1', name: "Maggi Goreng", category: "Noodles", price: 8, description: "Fried instant noodles mamak style", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
 
     // Nasi Kandar Pelita menu
-    { id: '5', restaurantId: '2', name: "Nasi Kandar", category: "Rice", price: 12, description: "Rice with curry and mixed sides", isAvailable: true },
-    { id: '6', restaurantId: '2', name: "Ayam Goreng", category: "Chicken", price: 8, description: "Crispy fried chicken", isAvailable: true },
-    { id: '7', restaurantId: '2', name: "Teh Ais", category: "Drinks", price: 3, description: "Iced milk tea", isAvailable: true },
-    { id: '8', restaurantId: '2', name: "Dhal Curry", category: "Sides", price: 5, description: "Slow cooked lentil curry", isAvailable: true },
+    { id: '5', restaurantId: '2', name: "Nasi Kandar", category: "Rice", price: 12, description: "Rice with curry and mixed sides", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
+    { id: '6', restaurantId: '2', name: "Ayam Goreng", category: "Chicken", price: 8, description: "Crispy fried chicken", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
+    { id: '7', restaurantId: '2', name: "Teh Ais", category: "Drinks", price: 3, description: "Iced milk tea", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
+    { id: '8', restaurantId: '2', name: "Dhal Curry", category: "Sides", price: 5, description: "Slow cooked lentil curry", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
 ]
+
+const menuItems = baseMenuItems.map((item) => ({
+  ...item,
+  addOns: CATEGORY_ADD_ONS[item.category.toLowerCase()] ?? [],
+  preferenceHints: DEFAULT_PREFERENCE_HINTS,
+}))
 
 const tables = [
     { id: '1', restaurantId: '1', tableNumber: 1, currentSessionId: '1' },
@@ -60,122 +96,7 @@ const tables = [
 ]
 
 let orders = [
-    {
-        id: '1',
-        restaurantId: '1',
-        table: 3,
-        items: [
-            {
-                menuItem: {
-                    id: '2',
-                    restaurantId: '1',
-                    name: "Teh Tarik",
-                    category: "Drinks",
-                    price: 3.5,
-                    description: "Classic pulled milk tea",
-                    isAvailable: true
-                },
-                quantity: 4,
-                subtotal: 14
-            }
-        ],
-        total: 14,
-        status: "Pending",
-        createdAt: "2026-02-25T10:34:48.440Z"
-    },
-
-    {
-        id: '2',
-        restaurantId: '1',
-        table: 3,
-        items: [
-            {
-                menuItem: {
-                    id: '2',
-                    restaurantId: '1',
-                    name: "Teh Tarik",
-                    category: "Drinks",
-                    price: 3.5,
-                    description: "Classic pulled milk tea",
-                    isAvailable: true
-                },
-                quantity: 4,
-                subtotal: 14
-            }
-        ],
-        total: 14,
-        status: "Pending",
-        createdAt: "2026-02-25T10:34:48.440Z"
-    },
-    {
-        id: '3',
-        restaurantId: '1',
-        table: 3,
-        items: [
-            {
-                menuItem: {
-                    id: '1',
-                    restaurantId: '1',
-                    name: "Roti Canai",
-                    category: "Bread",
-                    price: 3,
-                    description: "Crispy flatbread with dhal curry",
-                    isAvailable: true
-                },
-                quantity: 3,
-                subtotal: 9
-            }
-        ],
-        total: 9,
-        status: "Pending",
-        createdAt: "2026-02-25T10:34:52.483Z"
-    },
-    {
-        id: '4',
-        restaurantId: '1',
-        table: 3,
-        items: [
-            {
-                menuItem: {
-                    id: '4',
-                    restaurantId: '1',
-                    name: "Maggi Goreng",
-                    category: "Noodles",
-                    price: 8,
-                    description: "Fried instant noodles mamak style",
-                    isAvailable: true
-                },
-                quantity: 3,
-                subtotal: 24
-            }
-        ],
-        total: 24,
-        status: "Pending",
-        createdAt: "2026-02-25T10:34:55.783Z"
-    },
-    {
-        id: '5',
-        restaurantId: '1',
-        table: 3,
-        items: [
-            {
-                menuItem: {
-                    id: '3',
-                    restaurantId: '1',
-                    name: "Mee Goreng Mamak",
-                    category: "Noodles",
-                    price: 10,
-                    description: "Spicy fried noodles with egg",
-                    isAvailable: true
-                },
-                quantity: 1,
-                subtotal: 10
-            }
-        ],
-        total: 10,
-        status: "Pending",
-        createdAt: "2026-02-25T10:34:59.186Z"
-    }
+  
 ]
 
 
@@ -191,4 +112,12 @@ const tableSessions = [
     }
 ]
 
-module.exports = { restaurants, menuItems, tables, orders, tableSessions }
+module.exports = {
+  restaurants,
+  menuItems,
+  tables,
+  orders,
+  tableSessions,
+  CATEGORY_ADD_ONS,
+  DEFAULT_PREFERENCE_HINTS,
+}

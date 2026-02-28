@@ -1,0 +1,18 @@
+import ItemDetailClient from "@/components/ItemDetailClient";
+
+type PageProps = {
+    params: Promise<{ slug:string, itemId: string }>
+}
+
+export default async function ItemDetail({params}: PageProps){
+    const {slug, itemId} = await params;
+
+    const response = await fetch(`http://localhost:5002/api/menu/restaurant/${slug}/itemId/${itemId}`);
+    const item = await response.json()
+// '/restaurant/:slug/itemId/:itemId'
+    return (
+        <ItemDetailClient 
+            item = {item}
+        />
+    )
+}

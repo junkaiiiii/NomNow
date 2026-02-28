@@ -13,11 +13,15 @@ export default async function OrdersPage({params, searchParams}:PageProps){
 
 
     // /restaurant/:slug/table/:table
-    const response = await fetch(`http://localhost:5001/api/orders/restaurant/${slug}/table/${table}`)
-    const orders = await response.json();
+    const response = await fetch(`http://localhost:5002/api/orders/restaurant/${slug}/table/${table}`)
+    const orders = await response.json()
+    
+    const restaurantResponse = await fetch(`http://localhost:5002/api/restaurant/${slug}`)
+    const restaurant = await restaurantResponse.json()
 
     return (
         <OrdersClient 
+            restaurant={restaurant}
             orders={orders}
             table = {table}
         />

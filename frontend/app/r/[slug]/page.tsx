@@ -1,5 +1,5 @@
 import MenuClient from '@/components/MenuClient'
-import { Restaurant, MenuItem } from '@/app/types'
+import { Restaurant, MenuItem } from '@/types'
 
 type PageProps = {
     params: Promise<{ slug: string }>
@@ -8,7 +8,7 @@ type PageProps = {
 export default async function MenuPage({ params }: PageProps) {
     const {slug} = await params
 
-    const res = await fetch(`http://localhost:5001/api/menu/${slug}`)
+    const res = await fetch(`http://localhost:5002/api/menu/${slug}`)
 
     if (!res.ok) {
         return (

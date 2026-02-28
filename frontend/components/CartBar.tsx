@@ -27,7 +27,7 @@ export default function CartBar() {
         let total = 0
 
         cart.forEach(item => {
-            total += item.price * item.quantity
+            total += item.unitPrice * item.quantity
         });
 
         return total

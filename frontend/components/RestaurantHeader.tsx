@@ -22,7 +22,7 @@ export default function RestaurantHeader({ name, address, goBack }: Props) {
             }
 
             <div>
-                <h1 className="text-black text-2xl font-bold ">{name}</h1>
+                <h1 className="text-black text-xl font-bold ">{name}</h1>
                 <p className="text-gray-500 text-sm mt-1">{address}</p>
             </div>
 

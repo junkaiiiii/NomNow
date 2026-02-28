@@ -1,17 +1,47 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CartItem, MenuItem, Restaurant } from "@/app/types"
+import { CartItem, ItemCustomization, MenuItem, Restaurant } from "@/types";
+import { buildCustomizationSignature, computeUnitPrice, resolveAddOns } from "@/lib/itemCustomization";
 
 type CartStore = {
     cart: CartItem[]
     tableNumber: string | null
     restaurant: Restaurant | null
-
     setTable: (table: string, restaurant: Restaurant) => void
-    addToCart: (item: MenuItem) => void
-    removeFromCart: (itemId: string) => void
+    addToCart: (item: MenuItem, customization?: ItemCustomization) => void
+    incrementCartItem: (lineId: string) => void
+    decrementCartItem: (lineId: string) => void
+    updateCartItemCustomization: (lineId: string, customization: ItemCustomization) => void
+    removeCartItem: (lineId: string) => void
     clearCart: () => void
     clearTable: () => void
+}
+
+function buildCartLine(item: MenuItem, customization: ItemCustomization): CartItem {
+    return {
+        id: `${item.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        menuItemId: item.id,
+        restaurantId: item.restaurantId,
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        isAvailable: item.isAvailable,
+        addOns: item.addOns,
+        preferenceHints: item.preferenceHints,
+        selectedAddOns: customization.selectedAddOns,
+        preference: customization.preference.trim(),
+        basePrice: item.price,
+        unitPrice: computeUnitPrice(item.price, customization.selectedAddOns),
+        quantity: 1,
+        imageUrl: item.imageUrl
+    };
+}
+
+function getDefaultCustomization(): ItemCustomization {
+    return {
+        selectedAddOns: [],
+        preference: "",
+    };
 }
 
 export const useCartStore = create<CartStore>()(
@@ -21,52 +51,110 @@ export const useCartStore = create<CartStore>()(
             tableNumber: null,
             restaurant: null,
 
-            setTable: (table, restaurant) => set({ tableNumber: table, restaurant: restaurant }),
+            setTable: (table, restaurant) => set({ tableNumber: table, restaurant }),
 
-            addToCart: (item) => set((state) => {
-                const existing = state.cart.find(ci => ci.id === item.id)
+            addToCart: (item, customization) => set((state) => {
+                const normalizedCustomization = customization ?? getDefaultCustomization();
+                const newSignature = buildCustomizationSignature(item.id, normalizedCustomization);
+                const existingLine = state.cart.find((line) => {
+                    const lineSignature = buildCustomizationSignature(line.menuItemId, {
+                        selectedAddOns: line.selectedAddOns,
+                        preference: line.preference,
+                    });
+                    return lineSignature === newSignature;
+                });
 
-                if (existing) {
-                    return { cart: state.cart.map(ci => ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci) }
+                if (existingLine) {
+                    return {
+                        cart: state.cart.map((line) =>
+                            line.id === existingLine.id ? { ...line, quantity: line.quantity + 1 } : line
+                        ),
+                    };
                 }
 
-                return { cart: [...state.cart, { ...item, quantity: 1 }] }
+                const addOns = resolveAddOns(item);
+                const selectedAddOns = normalizedCustomization.selectedAddOns
+                    .filter((selected) => addOns.some((available) => available.id === selected.id));
+                const line = buildCartLine(item, {
+                    selectedAddOns,
+                    preference: normalizedCustomization.preference,
+                });
+                return { cart: [...state.cart, line] };
             }),
 
+            incrementCartItem: (lineId) => set((state) => ({
+                cart: state.cart.map((line) =>
+                    line.id === lineId ? { ...line, quantity: line.quantity + 1 } : line
+                ),
+            })),
 
-
-            removeFromCart: (itemId) => set((state) => {
-                const existing = state.cart.find(i => i.id === itemId)
-                if (!existing) return state
+            decrementCartItem: (lineId) => set((state) => {
+                const existing = state.cart.find((line) => line.id === lineId);
+                if (!existing) return state;
                 if (existing.quantity === 1) {
-                    return { cart: state.cart.filter(i => i.id !== itemId) }
+                    return { cart: state.cart.filter((line) => line.id !== lineId) };
                 }
                 return {
-                    cart: state.cart.map(i =>
-                        i.id === itemId ? { ...i, quantity: i.quantity - 1 } : i
-                    )
-                }
+                    cart: state.cart.map((line) =>
+                        line.id === lineId ? { ...line, quantity: line.quantity - 1 } : line
+                    ),
+                };
             }),
+
+            updateCartItemCustomization: (lineId, customization) => set((state) => {
+                const line = state.cart.find((cartLine) => cartLine.id === lineId);
+                if (!line) return state;
+
+                const selectedAddOns = customization.selectedAddOns
+                    .filter((selected) => (line.addOns ?? []).some((available) => available.id === selected.id));
+                const updatedLine: CartItem = {
+                    ...line,
+                    selectedAddOns,
+                    preference: customization.preference.trim(),
+                    unitPrice: computeUnitPrice(line.basePrice, selectedAddOns),
+                };
+
+                const updatedSignature = buildCustomizationSignature(updatedLine.menuItemId, {
+                    selectedAddOns: updatedLine.selectedAddOns,
+                    preference: updatedLine.preference,
+                });
+
+                const duplicateLine = state.cart.find((cartLine) => {
+                    if (cartLine.id === lineId) return false;
+                    const signature = buildCustomizationSignature(cartLine.menuItemId, {
+                        selectedAddOns: cartLine.selectedAddOns,
+                        preference: cartLine.preference,
+                    });
+                    return signature === updatedSignature;
+                });
+
+                if (duplicateLine) {
+                    return {
+                        cart: state.cart
+                            .filter((cartLine) => cartLine.id !== lineId)
+                            .map((cartLine) =>
+                                cartLine.id === duplicateLine.id
+                                    ? { ...cartLine, quantity: cartLine.quantity + updatedLine.quantity }
+                                    : cartLine
+                            ),
+                    };
+                }
+
+                return {
+                    cart: state.cart.map((cartLine) => (cartLine.id === lineId ? updatedLine : cartLine)),
+                };
+            }),
+
+            removeCartItem: (lineId) => set((state) => ({
+                cart: state.cart.filter((line) => line.id !== lineId),
+            })),
 
             clearCart: () => set({ cart: [], tableNumber: null, restaurant: null }),
 
-            clearTable: () => set({tableNumber:null})
+            clearTable: () => set({ tableNumber: null }),
         }),
         {
-            name: 'nomnow-cart', // localStorage key
-          }
+            name: "nomnow-cart",
+        }
     )
-)
-
-// //helper functions
-// function addToCart(item: MenuItem) {
-//     setCart(prev => {
-//         const existing = prev.find(ci => ci.id === item.id)
-
-//         if (existing) {
-//             return prev.map(ci => ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci)
-//         }
-
-//         return [...prev, { ...item, quantity: 1 }]
-//     })
-// }
+);

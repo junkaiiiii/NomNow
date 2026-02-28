@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { useSearchParams } from 'next/navigation'
-import { Restaurant, MenuItem, CartItem } from '@/app/types'
+import { Restaurant, MenuItem, ItemCustomization } from '@/types'
 import MenuCard from '@/components/MenuCard'
 import RestaurantHeader from '@/components/RestaurantHeader'
 import CartBar from '@/components/CartBar'
+import ItemDetailModal from '@/components/ItemDetailModal'
 
 type Props = {
     restaurant: Restaurant
@@ -16,8 +17,10 @@ type Props = {
 export default function MenuClient({ restaurant, menu }: Props) {
     const searchParams = useSearchParams()
     const tableNumber = searchParams.get('table')
+    const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
+    const [isDetailOpen, setIsDetailOpen] = useState(false)
 
-    const { cart, addToCart, removeFromCart, setTable, clearTable } = useCartStore()
+    const { cart, addToCart, decrementCartItem, setTable, clearTable } = useCartStore()
 
     useEffect(() => {
         if (tableNumber) {
@@ -27,9 +30,40 @@ export default function MenuClient({ restaurant, menu }: Props) {
         }
     }, [tableNumber, restaurant])
 
-    function getQuantity(itemId: number) {
-        const item = cart.find(i => i.id === itemId)
-        return item ? item.quantity : 0
+    function getQuantity(itemId: string) {
+        return cart
+            .filter((line) => line.menuItemId === itemId)
+            .reduce((sum, line) => sum + line.quantity, 0)
+    }
+
+    function removeOneItem(itemId: string) {
+        const plainLine = cart.find((line) =>
+            line.menuItemId === itemId
+            && line.selectedAddOns.length === 0
+            && !line.preference.trim()
+        )
+        const fallbackLine = cart.find((line) => line.menuItemId === itemId)
+        const targetLine = plainLine ?? fallbackLine
+
+        if (targetLine) {
+            decrementCartItem(targetLine.id)
+        }
+    }
+
+    function openItemDetail(item: MenuItem) {
+        setSelectedItem(item)
+        setIsDetailOpen(true)
+    }
+
+    function closeItemDetail() {
+        setIsDetailOpen(false)
+        setSelectedItem(null)
+    }
+
+    function addCustomizedItem(customization: ItemCustomization) {
+        if (!selectedItem) return
+        addToCart(selectedItem, customization)
+        closeItemDetail()
     }
 
     const categories = [...new Set(menu.map(item => item.category))]
@@ -56,7 +90,8 @@ export default function MenuClient({ restaurant, menu }: Props) {
                                         item={item}
                                         quantity={getQuantity(item.id)}
                                         onAdd={addToCart}
-                                        onRemove={removeFromCart}
+                                        onRemove={removeOneItem}
+                                        onOpenDetail={openItemDetail}
                                     />
                                 ))}
                             </div>
@@ -67,6 +102,14 @@ export default function MenuClient({ restaurant, menu }: Props) {
                     <CartBar />
                 </div>
             </div>
+            <ItemDetailModal
+                isOpen={isDetailOpen}
+                item={selectedItem}
+                initialCustomization={{ selectedAddOns: [], preference: '' }}
+                submitLabel="Add to cart"
+                onClose={closeItemDetail}
+                onSubmit={addCustomizedItem}
+            />
         </>
 
 
