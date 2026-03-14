@@ -13,10 +13,9 @@ type Props = {
   quantity: number
   onAdd: (item: MenuItem) => void
   onRemove: (itemId: string) => void
-  onOpenDetail: (item: MenuItem) => void
 }
 
-export default function MenuCard({ item, quantity, onAdd, onRemove, onOpenDetail }: Props) {
+export default function MenuCard({ item, quantity, onAdd, onRemove}: Props) {
   const router = useRouter();
   const { restaurant } = useCartStore();
 
@@ -28,7 +27,6 @@ export default function MenuCard({ item, quantity, onAdd, onRemove, onOpenDetail
       <button
         type="button"
         className="flex flex-1 justify-start items-center space-x-5 text-left"
-        onClick={() => onOpenDetail(item)}
       >
         <div className=''>
           <img

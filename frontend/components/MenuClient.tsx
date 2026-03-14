@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import MenuCard from '@/components/MenuCard'
 import RestaurantHeader from '@/components/RestaurantHeader'
 import CartBar from '@/components/CartBar'
+import ItemCustomizationChoice from '@/components/ItemCustomizationChoice'
 
 type Props = {
     restaurant: Restaurant
@@ -18,8 +19,9 @@ export default function MenuClient({ restaurant, menu }: Props) {
     const searchParams = useSearchParams()
     const tableNumber = searchParams.get('table')
     const router = useRouter();
-    const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
-    const [isDetailOpen, setIsDetailOpen] = useState(false)
+    const [selectedItemId, setSelectedItemId] = useState<string>('')
+    const [showExistingCustomization, setShowExistingCustomization] = useState<boolean>(false)
+
 
     const { cart, addToCart, decrementCartItem, setTable, clearTable } = useCartStore()
 
@@ -37,54 +39,40 @@ export default function MenuClient({ restaurant, menu }: Props) {
             .reduce((sum, line) => sum + line.quantity, 0)
     }
 
-    function removeOneItem(itemId: string) {
-        const plainLine = cart.find((line) =>
-            line.menuItemId === itemId
-            && line.selectedAddOns.length === 0
-            && !line.preference.trim()
-        )
-        const fallbackLine = cart.find((line) => line.menuItemId === itemId)
-        const targetLine = plainLine ?? fallbackLine
 
-        if (targetLine) {
-            decrementCartItem(targetLine.id)
-        }
-    }
-
-    function openItemDetail(item: MenuItem) {
-        setSelectedItem(item)
-        setIsDetailOpen(true)
-    }
-
-    function closeItemDetail() {
-        setIsDetailOpen(false)
-        setSelectedItem(null)
-    }
-
-    function addCustomizedItem(customization: ItemCustomization) {
-        if (!selectedItem) return
-        addToCart(selectedItem, customization)
-        closeItemDetail()
-    }
 
     // add at menu client instead of here :>
-  function handleAddItem(item: MenuItem){
-    if (cart.some(line => line.menuItemId === item.id )){
-        // comfirmation popup if item already in cart
-        return
-    }
+    function handleAddItem(item: MenuItem) {
+        if (cart.some(line => line.menuItemId === item.id)) {
+            // existing customization options if item already in cart
+            setSelectedItemId(item.id)
+            setShowExistingCustomization(true)
+            return
+        }
         // navigate to item detail page for customization
-        router.push(`/r/${restaurant.slug}/item/${item.id}`) 
-  }
+        router.push(`/r/${restaurant.slug}/item/${item.id}`)
+    }
+
+    function handleRemoveItem(itemId: string) {
+        if (cart.some(line => line.menuItemId === itemId)) {
+            // comfirmation popup if item already in cart
+            return
+        }
+
+        decrementCartItem(itemId)
+    }
 
     const categories = [...new Set(menu.map(item => item.category))]
+
+    console.log(cart)
+    console.log(selectedItemId)
 
 
     return (
         <>
 
             <div className="min-h-screen bg-gray-50 pb-32">
-                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8">
                     <RestaurantHeader
                         name={restaurant.name}
                         address={restaurant.address}
@@ -95,15 +83,53 @@ export default function MenuClient({ restaurant, menu }: Props) {
                             <h2 className='text-lg font-bold mb-3'>{cat}</h2>
                             <div className="space-y-3">
                                 {menu.filter(item => item.category === cat).map(item => (
-                                    // item, quantity, onAdd, onRemove
-                                    <MenuCard
-                                        key={item.id}
-                                        item={item}
-                                        quantity={getQuantity(item.id)}
-                                        onAdd={addToCart}
-                                        onRemove={removeOneItem}
-                                        onOpenDetail={openItemDetail}
-                                    />
+                                    <div  key={item.id} className="bg-white rounded-xl p-4 shadow-sm flex justify-between items-center">
+
+                                        <button
+                                            type="button"
+                                            className="flex flex-1 justify-start items-center space-x-5 text-left"
+                                        >
+                                            <div className=''>
+                                                <img
+                                                    className='w-20 h-20 rounded-md object-cover'
+                                                    src={item.imageUrl}
+                                                />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">{item.name}</h3>
+                                                <p className="text-gray-500 text-sm mt-0.5">{item.description}</p>
+                                                <p className="text-black font-bold mt-1">RM {item.price.toFixed(2)}</p>
+                                                <p className="text-xs text-orange-500 mt-1">Tap to customize</p>
+                                            </div>
+                                        </button>
+
+                                        <div className="flex items-center gap-2 ml-4">
+                                            {getQuantity(item.id) > 0 ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => decrementCartItem(item.id)}
+                                                        className="w-8 h-8 rounded-full bg-white text-orange-500 font-bold hover:bg-orange-200 transition"
+                                                    >
+                                                        −
+                                                    </button>
+                                                    <span className="w-4 text-center font-semibold">{getQuantity(item.id)}</span>
+                                                    <button
+                                                        onClick={() => handleAddItem(item)}
+                                                        className="w-8 h-8 rounded-full bg-white text-orange-500 font-bold hover:bg-orange-200 transition flex justify-center items-center"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleAddItem(item)}
+                                                    className="w-8 h-8 rounded-full bg-orange-500 text-white font-bold hover:bg-orange-600 transition"
+                                                >
+                                                    +
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -111,6 +137,12 @@ export default function MenuClient({ restaurant, menu }: Props) {
                     }
 
                     <CartBar />
+
+                    <ItemCustomizationChoice
+                        itemId = {selectedItemId}
+                        isShow={showExistingCustomization}
+                        onClose={() => setShowExistingCustomization(false)}
+                    />
                 </div>
             </div>
         </>

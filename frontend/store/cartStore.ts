@@ -53,8 +53,13 @@ export const useCartStore = create<CartStore>()(
             setTable: (table, restaurant) => set({ tableNumber: table, restaurant }),
 
             addToCart: (item, customization) => set((state) => {
+                // Normalize customization (use default if none provided)
                 const normalizedCustomization = customization ?? getDefaultCustomization();
+
+                // Generate a unique signature for the item with its customization
                 const newSignature = buildCustomizationSignature(item.id, normalizedCustomization);
+
+                // Check if an item with the same signature already exists in the cart
                 const existingLine = state.cart.find((line) => {
                     const lineSignature = buildCustomizationSignature(line.menuItemId, {
                         selectedAddOns: line.selectedAddOns,
@@ -63,22 +68,26 @@ export const useCartStore = create<CartStore>()(
                     return lineSignature === newSignature;
                 });
 
+                // If the item already exists, increment its quantity
                 if (existingLine) {
                     return {
+                        ...state,
                         cart: state.cart.map((line) =>
-                            line.id === existingLine.id ? { ...line, quantity: line.quantity + 1 } : line
+                            line.menuItemId === existingLine.menuItemId
+                                ? { ...line, quantity: line.quantity + 1 }
+                                : line
                         ),
                     };
                 }
 
-                const addOns = resolveAddOns(item);
-                const selectedAddOns = normalizedCustomization.selectedAddOns
-                    .filter((selected) => addOns.some((available) => available.id === selected.id));
-                const line = buildCartLine(item, {
-                    selectedAddOns,
-                    preference: normalizedCustomization.preference,
-                });
-                return { cart: [...state.cart, line] };
+                // If the item does not exist, add it to the cart
+                return {
+                    ...state,
+                    cart: [
+                        ...state.cart,
+                        buildCartLine(item, normalizedCustomization),
+                    ],
+                };
             }),
 
             incrementCartItem: (lineId) => set((state) => ({
