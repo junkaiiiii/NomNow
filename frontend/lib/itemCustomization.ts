@@ -4,10 +4,6 @@ export function resolveAddOns(item: MenuItem): AddOnOption[] {
     return item.addOns ?? [];
 }
 
-export function resolvePreferenceHints(item: MenuItem): string[] {
-    return item.preferenceHints ?? [];
-}
-
 export function computeUnitPrice(basePrice: number, selectedAddOns: AddOnOption[]): number {
     const addOnTotal = selectedAddOns.reduce((sum, addOn) => sum + addOn.price, 0);
     return basePrice + addOnTotal;
@@ -20,4 +16,13 @@ export function buildCustomizationSignature(menuItemId: string, customization: I
         .join("|");
     const preference = customization.preference.trim().toLowerCase();
     return `${menuItemId}::${addOnSignature}::${preference}`;
+}
+
+export function resolveCustomizationSignature(signature: string){
+    const [itemId, addOns, preference] = signature.split('::');
+    return {
+        id: itemId,
+        addOns: addOns.split('|'),
+        preference: preference
+    }
 }

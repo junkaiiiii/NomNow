@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation";
 import { calculateTax } from "@/lib/taxCalculator";
-import ItemDetailModal from "@/components/ItemDetailModal";
 import { CartItem, ItemCustomization } from "@/types";
 
 export default function CartPage() {
@@ -45,6 +44,8 @@ export default function CartPage() {
     const priceBreakdown = calculateTax(cartTotal, restaurant.taxConfig);
     console.log(priceBreakdown)
 
+    console.log(cart)
+
     // submit order
     async function handleSubmitOrder() {
         setSubmitting(true);
@@ -78,7 +79,7 @@ export default function CartPage() {
             //     const { slug, table, items } = req.body
 
             // const res = await fetch(`http://localhost:5001/api/menu/${slug}`)
-            const res = await fetch(`http://localhost:5001/api/orders`, {
+            const res = await fetch(`http://localhost:5002/api/orders`, {
                 headers: { 'Content-Type': 'application/json' },
                 method: 'POST',
                 body: JSON.stringify(
@@ -188,33 +189,6 @@ export default function CartPage() {
                     <p className="text-sm text-red-500">{error}</p>
                 )}
             </div>
-
-            <ItemDetailModal
-                isOpen={Boolean(editingItem)}
-                item={editingItem ? {
-                    id: editingItem.menuItemId,
-                    restaurantId: editingItem.restaurantId,
-                    name: editingItem.name,
-                    description: editingItem.description,
-                    price: editingItem.basePrice,
-                    category: editingItem.category,
-                    isAvailable: editingItem.isAvailable,
-                    addOns: editingItem.addOns,
-                    preferenceHints: editingItem.preferenceHints,
-                    imageUrl: editingItem.imageUrl,
-                } : null}
-                initialCustomization={{
-                    selectedAddOns: editingItem?.selectedAddOns ?? [],
-                    preference: editingItem?.preference ?? '',
-                }}
-                submitLabel="Save item"
-                onClose={() => setEditingItem(null)}
-                onSubmit={(customization: ItemCustomization) => {
-                    if (!editingItem) return;
-                    updateCartItemCustomization(editingItem.id, customization);
-                    setEditingItem(null);
-                }}
-            />
         </div>
 
     )

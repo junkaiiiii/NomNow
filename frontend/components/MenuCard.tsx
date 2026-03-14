@@ -1,6 +1,10 @@
 'use client'
 
 import { MenuItem } from '@/types'
+import { useRouter } from 'next/navigation';
+import { useCartStore } from '@/store/cartStore';
+import { buildCustomizationSignature } from "@/lib/itemCustomization"
+
 
 const FALLBACK_IMAGE_URL = "https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg";
 
@@ -13,6 +17,11 @@ type Props = {
 }
 
 export default function MenuCard({ item, quantity, onAdd, onRemove, onOpenDetail }: Props) {
+  const router = useRouter();
+  const { restaurant } = useCartStore();
+
+  
+
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm flex justify-between items-center">
 
@@ -49,7 +58,7 @@ export default function MenuCard({ item, quantity, onAdd, onRemove, onOpenDetail
             </button>
             <span className="w-4 text-center font-semibold">{quantity}</span>
             <button
-              onClick={() => onAdd(item)}
+              onClick={() => router.push(`/r/${restaurant?.slug}/item/${item.id}`)}
               className="w-8 h-8 rounded-full bg-white text-orange-500 font-bold hover:bg-orange-200 transition flex justify-center items-center"
             >
               +
@@ -57,7 +66,7 @@ export default function MenuCard({ item, quantity, onAdd, onRemove, onOpenDetail
           </>
         ) : (
           <button
-            onClick={() => onAdd(item)}
+            onClick={() => router.push(`/r/${restaurant?.slug}/item/${item.id}`)}
             className="w-8 h-8 rounded-full bg-orange-500 text-white font-bold hover:bg-orange-600 transition"
           >
             +

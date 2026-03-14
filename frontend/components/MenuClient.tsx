@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { useSearchParams } from 'next/navigation'
-import { Restaurant, MenuItem, ItemCustomization } from '@/types'
+import { Restaurant, MenuItem, ItemCustomization, CartItem } from '@/types'
+import { useRouter } from 'next/navigation'
 import MenuCard from '@/components/MenuCard'
 import RestaurantHeader from '@/components/RestaurantHeader'
 import CartBar from '@/components/CartBar'
-import ItemDetailModal from '@/components/ItemDetailModal'
 
 type Props = {
     restaurant: Restaurant
@@ -17,6 +17,7 @@ type Props = {
 export default function MenuClient({ restaurant, menu }: Props) {
     const searchParams = useSearchParams()
     const tableNumber = searchParams.get('table')
+    const router = useRouter();
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
 
@@ -66,6 +67,16 @@ export default function MenuClient({ restaurant, menu }: Props) {
         closeItemDetail()
     }
 
+    // add at menu client instead of here :>
+  function handleAddItem(item: MenuItem){
+    if (cart.some(line => line.menuItemId === item.id )){
+        // comfirmation popup if item already in cart
+        return
+    }
+        // navigate to item detail page for customization
+        router.push(`/r/${restaurant.slug}/item/${item.id}`) 
+  }
+
     const categories = [...new Set(menu.map(item => item.category))]
 
 
@@ -102,14 +113,6 @@ export default function MenuClient({ restaurant, menu }: Props) {
                     <CartBar />
                 </div>
             </div>
-            <ItemDetailModal
-                isOpen={isDetailOpen}
-                item={selectedItem}
-                initialCustomization={{ selectedAddOns: [], preference: '' }}
-                submitLabel="Add to cart"
-                onClose={closeItemDetail}
-                onSubmit={addCustomizedItem}
-            />
         </>
 
 

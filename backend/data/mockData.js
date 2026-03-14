@@ -60,13 +60,6 @@ const CATEGORY_ADD_ONS = {
     ],
 }
 
-const DEFAULT_PREFERENCE_HINTS = [
-  "No onion",
-  "No spicy",
-  "Extra spicy",
-  "Less sugar",
-]
-
 const baseMenuItems = [
     // Mamak Bistro menu
     { id: '1', restaurantId: '1', name: "Roti Canai", category: "Bread", price: 3, description: "Crispy flatbread with dhal curry", isAvailable: true, imageUrl: 'https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg' },
@@ -84,7 +77,6 @@ const baseMenuItems = [
 const menuItems = baseMenuItems.map((item) => ({
   ...item,
   addOns: CATEGORY_ADD_ONS[item.category.toLowerCase()] ?? [],
-  preferenceHints: DEFAULT_PREFERENCE_HINTS,
 }))
 
 const tables = [
@@ -118,6 +110,5 @@ module.exports = {
   tables,
   orders,
   tableSessions,
-  CATEGORY_ADD_ONS,
-  DEFAULT_PREFERENCE_HINTS,
+  CATEGORY_ADD_ONS
 }

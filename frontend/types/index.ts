@@ -22,7 +22,6 @@ export type MenuItem = {
     category: string
     isAvailable: boolean
     addOns?: AddOnOption[]
-    preferenceHints?: string[]
     imageUrl: string
 }
 

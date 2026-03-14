@@ -27,7 +27,7 @@ export default function CartItemCard({ item, index, onEdit }: Props) {
                 <div className=''>
                     <img
                         className='w-20 h-20 rounded-md object-cover'
-                        src={item.imageUrl || FALLBACK_IMAGE_URL}
+                        src={item.imageUrl}
                         onError={(event) => {
                             event.currentTarget.src = FALLBACK_IMAGE_URL;
                         }}

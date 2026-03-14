@@ -27,7 +27,6 @@ function buildCartLine(item: MenuItem, customization: ItemCustomization): CartIt
         category: item.category,
         isAvailable: item.isAvailable,
         addOns: item.addOns,
-        preferenceHints: item.preferenceHints,
         selectedAddOns: customization.selectedAddOns,
         preference: customization.preference.trim(),
         basePrice: item.price,
