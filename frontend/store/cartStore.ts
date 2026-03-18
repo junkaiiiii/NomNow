@@ -9,8 +9,8 @@ type CartStore = {
     restaurant: Restaurant | null
     setTable: (table: string, restaurant: Restaurant) => void
     addToCart: (item: MenuItem, customization?: ItemCustomization) => void
-    incrementCartItem: (lineId: string) => void
-    decrementCartItem: (lineId: string) => void
+    incrementCartItem: (lineId: string) => void //cart item id
+    decrementCartItem: (lineId: string) => void //cart item id
     updateCartItemCustomization: (lineId: string, customization: ItemCustomization) => void
     removeCartItem: (lineId: string) => void
     clearCart: () => void
@@ -73,7 +73,7 @@ export const useCartStore = create<CartStore>()(
                     return {
                         ...state,
                         cart: state.cart.map((line) =>
-                            line.menuItemId === existingLine.menuItemId
+                            line.id === existingLine.id
                                 ? { ...line, quantity: line.quantity + 1 }
                                 : line
                         ),
@@ -99,6 +99,7 @@ export const useCartStore = create<CartStore>()(
             decrementCartItem: (lineId) => set((state) => {
                 const existing = state.cart.find((line) => line.id === lineId);
                 if (!existing) return state;
+                console.log("Decrementing line:", existing);
                 if (existing.quantity === 1) {
                     return { cart: state.cart.filter((line) => line.id !== lineId) };
                 }

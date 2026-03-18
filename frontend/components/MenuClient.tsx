@@ -54,12 +54,29 @@ export default function MenuClient({ restaurant, menu }: Props) {
     }
 
     function handleRemoveItem(itemId: string) {
-        if (cart.some(line => line.menuItemId === itemId)) {
+        // if (cart.some(line => line.menuItemId === itemId)) {
+        //     // comfirmation popup if item already in cart
+        //     setSelectedItemId(itemId)
+        //     setShowExistingCustomization(true)
+        //     return
+        // }
+        console.log("REmoving item with id:", itemId)
+        let customizationGroupCount = 0
+        cart.forEach(line => { 
+            if (line.menuItemId === itemId) {
+                customizationGroupCount += 1
+            }
+        })
+        console.log(customizationGroupCount);
+
+        if (customizationGroupCount > 1){
             // comfirmation popup if item already in cart
+            setSelectedItemId(itemId)
+            setShowExistingCustomization(true)
             return
         }
-
-        decrementCartItem(itemId)
+        console.log("No need to show customization choice, directly decrementing")
+        decrementCartItem(cart.find(line => line.menuItemId === itemId)?.id || '')
     }
 
     const categories = [...new Set(menu.map(item => item.category))]
@@ -99,7 +116,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                                                 <h3 className="font-semibold">{item.name}</h3>
                                                 <p className="text-gray-500 text-sm mt-0.5">{item.description}</p>
                                                 <p className="text-black font-bold mt-1">RM {item.price.toFixed(2)}</p>
-                                                <p className="text-xs text-orange-500 mt-1">Tap to customize</p>
+                                                <p className="text-xs text-orange-500 mt-1">Tap toz customize</p>
                                             </div>
                                         </button>
 
@@ -107,7 +124,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                                             {getQuantity(item.id) > 0 ? (
                                                 <>
                                                     <button
-                                                        onClick={() => decrementCartItem(item.id)}
+                                                        onClick={() => handleRemoveItem(item.id)}
                                                         className="w-8 h-8 rounded-full bg-white text-orange-500 font-bold hover:bg-orange-200 transition"
                                                     >
                                                         −

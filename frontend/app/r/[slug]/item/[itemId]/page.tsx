@@ -15,6 +15,7 @@ export default async function ItemDetail({params, searchParams}: PageProps){
     return (
         <ItemDetailClient 
             item = {item}
+            existingSignature= {signature}
         />
     )
 }

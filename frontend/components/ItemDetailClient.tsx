@@ -4,7 +4,7 @@ import RestaurantHeader from "./RestaurantHeader"
 import { useEffect, useState } from "react"
 import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation"
-import { MenuItem, AddOnOption } from "@/types"
+import { MenuItem, AddOnOption, CartItem } from "@/types"
 import { buildCustomizationSignature } from "@/lib/itemCustomization"
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 
 export default function ItemDetailClient({ item, existingSignature }: Props) {
     const { tableNumber, restaurant, cart, addToCart, incrementCartItem, decrementCartItem, removeCartItem } = useCartStore();
+    const [initialLine, setInitialLine] = useState<CartItem | null>(null);
     const [quantity, setQuantity] = useState<number>(0);
     const [addOns, setAddOns] = useState<AddOnOption[]>([]);
     const [preference, setPreference] = useState<string>("");
@@ -27,9 +28,28 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
 
     useEffect(() => {
         const initialLine = cart.find(line => buildCustomizationSignature(line.menuItemId, { selectedAddOns: line.selectedAddOns ?? [], preference: line.preference ?? "" }) === existingSignature);
+
+        if (initialLine) {
+            console.log('found')
+            setAddOns(initialLine.selectedAddOns ?? []);
+            setPreference(initialLine.preference ?? "");
+            setInitialLine(initialLine);
+        } else {
+            console.log('not found')            
+        }
         const initialQuantity = initialLine ? initialLine.quantity : 0;
         setQuantity(initialQuantity);
-    }, [])
+    }, [cart, existingSignature])
+
+    console.log("existing esignature:",existingSignature)
+    console.log("cart:", cart);
+
+    for (const line of cart) {
+        console.log("line signature:", buildCustomizationSignature(line.menuItemId, { selectedAddOns: line.selectedAddOns ?? [], preference: line.preference ?? "" }))
+    }
+
+    console.log("initial line:", initialLine);
+    console.log("initial addons:",initialLine?.selectedAddOns, addOns);
 
     function handleAddtoCart() {
         const customization = {
@@ -43,6 +63,7 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
 
             if (signature === existingSignature) {
                 // update existing cart item
+                console.log('updating existing item quantity')
                 const existingLine = cart.find(line => buildCustomizationSignature(line.menuItemId, {
                     selectedAddOns: line.selectedAddOns ?? [],
                     preference: line.preference ?? "",
@@ -147,6 +168,7 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
                                                         setAddOns(addOns.filter(a => a.id !== addOn.id))
                                                     }
                                                 }}
+                                                checked={addOns.some(a => a.id === addOn.id)}
                                             ></input>
                                             <label className="ml-2">{addOn.name}</label>
                                         </div>
@@ -164,6 +186,7 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
                         onInput={(e) => {
                             setPreference(e.currentTarget.value)
                         }}
+                        value={preference}
                     ></textarea>
                 </div>
 
@@ -175,7 +198,6 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
                             setSubmitting(false);
                             router.push(`/r/${restaurant?.slug}?table=${tableNumber}`);
                         }, 250);
-
                     }}
                 >
                     {
