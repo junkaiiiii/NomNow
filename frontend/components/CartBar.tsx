@@ -39,13 +39,9 @@ export default function CartBar() {
     // Hide if no restaurant session
     if (!restaurant) return null
 
-
-
-
     return (
-        <div className="p-6 fixed bottom-0 left-0 right-0">
-
-            <button className="w-full bg-orange-500 text-white py-3 px-4  rounded-xl font-semibold flex justify-between items-center hover:bg-orange-600 transition"
+        <div className="fixed bottom-0 left-0 right-0 z-40 max-w-2xl mx-auto px-4">
+            <button className="w-full bg-orange-500 text-white py-3 px-4 rounded-xl font-semibold flex justify-between items-center hover:bg-orange-600 transition"
                 onClick={() => {
                     router.push(`/r/${restaurant.slug}/cart?table=${tableNumber}`)
                 }}>

@@ -5,7 +5,6 @@ import { useCartStore } from '@/store/cartStore'
 import { useSearchParams } from 'next/navigation'
 import { Restaurant, MenuItem, ItemCustomization, CartItem } from '@/types'
 import { useRouter } from 'next/navigation'
-import MenuCard from '@/components/MenuCard'
 import RestaurantHeader from '@/components/RestaurantHeader'
 import CartBar from '@/components/CartBar'
 import ItemCustomizationChoice from '@/components/ItemCustomizationChoice'
@@ -19,6 +18,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
     const searchParams = useSearchParams()
     const tableNumber = searchParams.get('table')
     const router = useRouter();
+    const [selectedCategory, setSelectedCategory] = useState<string>('')
     const [selectedItemId, setSelectedItemId] = useState<string>('')
     const [showExistingCustomization, setShowExistingCustomization] = useState<boolean>(false)
 
@@ -32,6 +32,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
             clearTable();
         }
     }, [tableNumber, restaurant])
+
 
     function getQuantity(itemId: string) {
         return cart
@@ -60,16 +61,16 @@ export default function MenuClient({ restaurant, menu }: Props) {
         //     setShowExistingCustomization(true)
         //     return
         // }
-        console.log("REmoving item with id:", itemId)
+        console.log("Removing item with id:", itemId)
         let customizationGroupCount = 0
-        cart.forEach(line => { 
+        cart.forEach(line => {
             if (line.menuItemId === itemId) {
                 customizationGroupCount += 1
             }
         })
         console.log(customizationGroupCount);
 
-        if (customizationGroupCount > 1){
+        if (customizationGroupCount > 1) {
             // comfirmation popup if item already in cart
             setSelectedItemId(itemId)
             setShowExistingCustomization(true)
@@ -88,19 +89,37 @@ export default function MenuClient({ restaurant, menu }: Props) {
     return (
         <>
 
-            <div className="min-h-screen bg-gray-50 pb-32">
+            <div className="min-h-screen bg-gray-50 ">
                 <div className="max-w-2xl mx-auto px-4 py-30 space-y-8">
                     <RestaurantHeader
                         name={restaurant.name}
                         address={restaurant.address}
                         goBack={false}
                     />
-                    {categories.map(cat => (
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                        <button
+                            className={`px-4 py-2 rounded-full whitespace-nowrap ${selectedCategory === '' ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 shadow-sm'}`}
+                            onClick={() => setSelectedCategory('')}
+                        >
+                            All
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedCategory(cat)}
+                                className={`px-4 py-2 rounded-full whitespace-nowrap ${selectedCategory === cat ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 shadow-sm'}`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    {(selectedCategory === '' ? categories : [selectedCategory]).map(cat => (
                         <div key={cat}>
                             <h2 className='text-lg font-bold mb-3'>{cat}</h2>
                             <div className="space-y-3">
                                 {menu.filter(item => item.category === cat).map(item => (
-                                    <div  key={item.id} className="bg-white rounded-xl p-4 shadow-sm flex justify-between items-center">
+                                    <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm flex justify-between items-center">
 
                                         <button
                                             type="button"
@@ -116,7 +135,6 @@ export default function MenuClient({ restaurant, menu }: Props) {
                                                 <h3 className="font-semibold">{item.name}</h3>
                                                 <p className="text-gray-500 text-sm mt-0.5">{item.description}</p>
                                                 <p className="text-black font-bold mt-1">RM {item.price.toFixed(2)}</p>
-                                                <p className="text-xs text-orange-500 mt-1">Tap toz customize</p>
                                             </div>
                                         </button>
 
@@ -153,13 +171,15 @@ export default function MenuClient({ restaurant, menu }: Props) {
                     ))
                     }
 
-                    <CartBar />
 
+                    <CartBar />
                     <ItemCustomizationChoice
-                        itemId = {selectedItemId}
+                        itemId={selectedItemId}
                         isShow={showExistingCustomization}
                         onClose={() => setShowExistingCustomization(false)}
                     />
+
+
                 </div>
             </div>
         </>

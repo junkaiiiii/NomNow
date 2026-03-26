@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from "react"
 import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation"
 import { buildCustomizationSignature } from "@/lib/itemCustomization"
@@ -18,11 +19,20 @@ type Props = {
 // }
 
 export default function ItemCustomizationChoice({ itemId, isShow, onClose }: Props) {
-
+    const [isMounted, setIsMounted] = useState(false)
     const { restaurant, cart, decrementCartItem, incrementCartItem } = useCartStore()
     const router = useRouter();
 
-    if (!isShow) return null
+    useEffect(() => {
+        if (isShow) {
+            setIsMounted(true)
+        }
+    }, [isShow])
+
+    const handleClose = () => {
+        setIsMounted(false)
+        setTimeout(() => onClose(), 10)
+    }
 
     // dynamic and not predefined key, so we use object instead of map
     const customizationGroups: { [key: string]: typeof cart } = {}
@@ -50,10 +60,17 @@ export default function ItemCustomizationChoice({ itemId, isShow, onClose }: Pro
 
     return (
         <div
-            className="fixed inset-0 flex flex-col justify-end items-center"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+            className={`fixed inset-0 flex flex-col justify-end items-center transition-colors duration-200 z-50 ${
+                isShow ? 'bg-black/50' : 'bg-black/0 pointer-events-none'
+            }`}
+            onClick={handleClose}
         >
-            <div className="bg-white rounded-lg p-6 flex flex-col justify-center  max-w-2xl w-full shadow-md space-y-3">
+            <div
+                className={`bg-white rounded-t-lg p-6 flex flex-col justify-center max-w-2xl w-full shadow-lg space-y-3 transition-transform duration-200 ${
+                    isShow ? 'translate-y-0' : 'translate-y-full'
+                }`}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <h2 className="text-xl font-bold mb-4">Existing Customizations</h2>
                 {Object.entries(customizationGroups).map(([signature, items]) => (
 
