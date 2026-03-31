@@ -9,7 +9,7 @@ export default async function ItemDetail({params, searchParams}: PageProps){
     const {slug, itemId} = await params;
     const {signature} = await searchParams
 
-    const response = await fetch(`http://localhost:5002/api/menu/restaurant/${slug}/itemId/${itemId}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/menu/restaurant/${slug}/itemId/${itemId}`);
     const item = await response.json()
 // '/restaurant/:slug/itemId/:itemId'
     return (

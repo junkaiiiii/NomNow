@@ -1,7 +1,8 @@
 'use client'
 
 import { OrderItem, Order, MenuItem, Restaurant } from "@/types"
-import RestaurantHeader from "@/components/RestaurantHeader"
+
+import GeneralHeader from "@/components/GeneralHeader"
 
 type Props = {
     orders: Order[]
@@ -14,9 +15,9 @@ export default function OrdersClient({ orders, table, restaurant }: Props) {
     return (
         <div className="min-h-screen bg-gray-50 pb-32">
             <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
-                <RestaurantHeader
-                    name='Order History'
-                    address={`Table ${table}`}
+                <GeneralHeader
+                    title='Order History'
+                    subtitle={`Table ${table}`}
                     goBack={true}
                 />
 

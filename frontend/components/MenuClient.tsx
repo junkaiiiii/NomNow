@@ -92,8 +92,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
             <div className="min-h-screen bg-gray-50 ">
                 <div className="max-w-2xl mx-auto px-4 py-30 space-y-8">
                     <RestaurantHeader
-                        name={restaurant.name}
-                        address={restaurant.address}
+                        restaurant={restaurant}
                         goBack={false}
                     />
                     <div className="flex gap-2 overflow-x-auto pb-2">
@@ -124,6 +123,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                                         <button
                                             type="button"
                                             className="flex flex-1 justify-start items-center space-x-5 text-left"
+                                            onClick={() => handleAddItem(item)}
                                         >
                                             <div className=''>
                                                 <img

@@ -13,10 +13,10 @@ export default async function OrdersPage({params, searchParams}:PageProps){
 
 
     // /restaurant/:slug/table/:table
-    const response = await fetch(`http://localhost:5002/api/orders/restaurant/${slug}/table/${table}`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders/restaurant/${slug}/table/${table}`)
     const orders = await response.json()
     
-    const restaurantResponse = await fetch(`http://localhost:5002/api/restaurant/${slug}`)
+    const restaurantResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurant/${slug}`)
     const restaurant = await restaurantResponse.json()
 
     return (

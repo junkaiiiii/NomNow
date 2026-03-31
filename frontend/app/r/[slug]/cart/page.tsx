@@ -1,19 +1,20 @@
 'use client'
 
 import RestaurantHeader from "@/components/RestaurantHeader"
+import GeneralHeader from "@/components/GeneralHeader"
 import CartItemCard from "@/components/CartItemCard";
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation";
 import { calculateTax } from "@/lib/taxCalculator";
 import { CartItem, ItemCustomization } from "@/types";
+import { ShoppingCart } from "lucide-react";
 
 export default function CartPage() {
     const { cart, tableNumber, restaurant, clearCart, updateCartItemCustomization } = useCartStore()
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
-    const [editingItem, setEditingItem] = useState<CartItem | null>(null);
 
     const cartTotal = cart.reduce((sum, i) => (sum + i.unitPrice * i.quantity), 0)
 
@@ -22,19 +23,24 @@ export default function CartPage() {
     if (!restaurant) {
         return (
             <div className="min-h-screen bg-gray-50 pb-32">
-                <RestaurantHeader
-                    name="View Cart"
-                    address=""
-                    goBack={true}
-                />
-                <div className="max-w-2xl mx-auto px-4 py-5 space-y-8 ">
-                    <div className="flex justify-center items-center min-h-screen flex-col space-y-5">
-                        <h1 className='text-xl font-bold'>Cart is Empty...</h1>
-                        <button className="p-2 bg-orange-500 text-white font-semibold hover:bg-orange-600 transition rounded-lg cursor-pointer"
-                            onClick={() => { router.back() /*router.push(`/r/${slug}?table=${tableNumber}`)*/ }}>
-                            Go Back to Menu
-                        </button>
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                    <GeneralHeader
+                        title="View Cart"
+                        subtitle={`Table ${tableNumber}`}
+                        goBack={true}
+                    />
+
+                    <div className="flex flex-col rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+
+                        <div className="flex justify-center items-center space-x-5">
+                            <ShoppingCart></ShoppingCart>
+                            <p className="text-center text-lg py-10">Your cart is empty.</p>
+                        </div>
+
                     </div>
+
+
+
                 </div>
             </div>
         )
@@ -79,7 +85,8 @@ export default function CartPage() {
             //     const { slug, table, items } = req.body
 
             // const res = await fetch(`http://localhost:5001/api/menu/${slug}`)
-            const res = await fetch(`http://localhost:5002/api/orders`, {
+            console.log("Submitting order with items: ", items, `PORT: ${process.env.NEXT_PUBLIC}`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
                 headers: { 'Content-Type': 'application/json' },
                 method: 'POST',
                 body: JSON.stringify(
@@ -94,6 +101,7 @@ export default function CartPage() {
                     }
                 )
             })
+            //const { restaurantId, table, items, sstAmount, serviceTaxAmount, subtotal, total } = req.body
 
             if (!res.ok) throw new Error('Failed to place order')
 
@@ -103,31 +111,10 @@ export default function CartPage() {
             clearCart()
             // router.push(`/r/${slug}/order/${order.id}`)
         } catch (error) {
-            setError('Something went wrong. Please try again.')
+            setError(`Something went wrong. Please try again. ${error instanceof Error ? error.message : ''}`)
             setSubmitting(false)
         }
 
-    }
-
-    if (cart.length < 1) {
-        return (
-            <div className="min-h-screen bg-gray-50 pb-32">
-                <RestaurantHeader
-                    name="View Cart"
-                    address=""
-                    goBack={true}
-                />
-                <div className="max-w-2xl mx-auto px-4 py-5 space-y-8 ">
-                    <div className="flex justify-center items-center min-h-screen flex-col space-y-5">
-                        <h1 className='text-xl font-bold'>Cart is Empty...</h1>
-                        <button className="p-2 bg-orange-500 text-white font-semibold hover:bg-orange-600 transition rounded-lg cursor-pointer"
-                            onClick={() => { router.back() /*router.push(`/r/${slug}?table=${tableNumber}`)*/ }}>
-                            Go Back to Menu
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )
     }
 
 
@@ -135,22 +122,27 @@ export default function CartPage() {
 
         <div className="min-h-screen bg-gray-50 pb-32">
             <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
-                <RestaurantHeader
-                    name="View Cart"
-                    address=""
+                <GeneralHeader
+                    title="View Cart"
+                    subtitle={`Table ${tableNumber}`}
                     goBack={true}
                 />
 
                 <div className="flex flex-col rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                     {
-                        cart.map((item, index) => (
-                            <CartItemCard
-                                item={item}
-                                key={item.id}
-                                index={index}
-                                onEdit={setEditingItem}
-                            />
-                        ))
+                        cart.length < 1 ? (
+                            <div className="flex justify-center items-center space-x-5">
+                                <ShoppingCart></ShoppingCart>
+                                <p className="text-center text-lg py-10">Your cart is empty.</p>
+                            </div>
+                        ) :
+                            cart.map((item, index) => (
+                                <CartItemCard
+                                    item={item}
+                                    key={item.id}
+                                    index={index}
+                                />
+                            ))
                     }
                 </div>
 
@@ -179,11 +171,14 @@ export default function CartPage() {
                         <span>RM {priceBreakdown.total.toFixed(2)}</span>
                     </div>
 
-                    <button className="w-full bg-orange-500 text-white text-lg font-semibold rounded-lg py-1 mt-2 cursor-pointer hover:bg-orange-600 transition"
-                        onClick={() => handleSubmitOrder()}
-                    >
-                        {submitting ? 'Placing Order...' : 'Place Order'}
-                    </button>
+                    {cart.length > 0 && (
+                        <button className="w-full bg-orange-500 text-white text-lg font-semibold rounded-lg py-1 mt-2 cursor-pointer hover:bg-orange-600 transition"
+                            onClick={() => handleSubmitOrder()}
+                        >
+                            {submitting ? 'Placing Order...' : 'Place Order'}
+                        </button>
+                    )}
+
                 </div>
                 {error && (
                     <p className="text-sm text-red-500">{error}</p>

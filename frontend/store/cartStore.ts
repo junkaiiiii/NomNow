@@ -158,7 +158,7 @@ export const useCartStore = create<CartStore>()(
                 cart: state.cart.filter((line) => line.id !== lineId),
             })),
 
-            clearCart: () => set({ cart: [], tableNumber: null, restaurant: null }),
+            clearCart: () => set({ cart: [] }),
 
             clearTable: () => set({ tableNumber: null }),
         }),

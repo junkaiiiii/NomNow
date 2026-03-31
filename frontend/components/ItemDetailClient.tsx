@@ -1,6 +1,6 @@
 'use client'
 
-import RestaurantHeader from "./RestaurantHeader"
+import GeneralHeader from "@/components/GeneralHeader"
 import { useEffect, useState } from "react"
 import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation"
@@ -111,11 +111,12 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
     return (
         <div className="min-h-screen bg-gray-50 pb-32">
             <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
-                <RestaurantHeader
-                    name={item.name}
-                    address=''
+                <GeneralHeader 
+                    title={item.name}
+                    subtitle={item.description}
                     goBack={true}
                 />
+
                 <div>
                     <img className="w-full h-80 object-cover rounded-lg shadow-md" src={item.imageUrl}></img>
                 </div>
@@ -190,14 +191,16 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
                     ></textarea>
                 </div>
 
-                <button className="w-full bg-orange-500 text-white font-bold py-3 px-10 rounded-lg hover:bg-orange-600 transition cursor-pointer"
+                <button className={`w-full ${quantity===0 ? 'bg-gray-500' : 'bg-orange-500'} text-white font-bold py-3 px-10 rounded-lg hover:bg-orange-600 transition cursor-pointer`}
+                    disabled={quantity === 0}
                     onClick={() => {
                         handleAddtoCart();
                         setSubmitting(true);
                         setTimeout(() => {
                             setSubmitting(false);
                             router.push(`/r/${restaurant?.slug}?table=${tableNumber}`);
-                        }, 250);
+                        }, 250); 
+                        // small delay to show the "Updating Cart..." overlay, since the cart update is instantaneous in this implementation. In a real implementation with async API calls, you would set submitting to false after the API call completes.
                     }}
                 >
                     {

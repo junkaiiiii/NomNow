@@ -8,7 +8,7 @@ type PageProps = {
 export default async function MenuPage({ params }: PageProps) {
     const {slug} = await params
 
-    const res = await fetch(`http://localhost:5002/api/menu/${slug}`)
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/menu/${slug}`)
 
     if (!res.ok) {
         return (

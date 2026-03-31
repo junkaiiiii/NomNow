@@ -3,17 +3,20 @@
 import { useCartStore } from "@/store/cartStore"
 import { CartItem } from "@/types"
 import { Trash } from 'lucide-react'
+import { useRouter } from "next/navigation"
+import { buildCustomizationSignature } from "@/lib/itemCustomization"
+import build from "next/dist/build"
 
 const FALLBACK_IMAGE_URL = "https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg";
 
 type Props = {
     item: CartItem
     index: number
-    onEdit: (item: CartItem) => void
 }
 
-export default function CartItemCard({ item, index, onEdit }: Props) {
-    const { incrementCartItem, decrementCartItem, removeCartItem } = useCartStore()
+export default function CartItemCard({ item, index }: Props) {
+    const { restaurant, incrementCartItem, decrementCartItem, removeCartItem } = useCartStore()
+    const router = useRouter();
 
     const price = item.quantity * item.unitPrice
 
@@ -21,8 +24,8 @@ export default function CartItemCard({ item, index, onEdit }: Props) {
         <div className={`w-full bg-white ${index !== 0 && 'border-t-1'}  border-gray-300 flex justify-between items-center p-5`}>
             <button
                 type="button"
-                className="flex flex-1 justify-start items-center space-x-5 text-left"
-                onClick={() => onEdit(item)}
+                className="flex flex-1 justify-start items-center space-x-5 text-left "
+                onClick={() => router.push(`/r/${restaurant?.slug}/item/${item.menuItemId}?signature=${buildCustomizationSignature(item.menuItemId, { selectedAddOns: item.selectedAddOns ?? [], preference: item.preference ?? "" })}`) }
             >
                 <div className=''>
                     <img
