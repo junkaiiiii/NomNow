@@ -1,23 +1,62 @@
 'use client'
 
-import RestaurantHeader from "@/components/RestaurantHeader"
 import GeneralHeader from "@/components/GeneralHeader"
 import CartItemCard from "@/components/CartItemCard";
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore"
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { calculateTax } from "@/lib/taxCalculator";
-import { CartItem, ItemCustomization } from "@/types";
 import { ShoppingCart } from "lucide-react";
+import { useSessionGuard } from "@/hooks/useSessionGuard";
 
 export default function CartPage() {
-    const { cart, tableNumber, restaurant, clearCart, updateCartItemCustomization } = useCartStore()
-    const router = useRouter();
+    const params = useParams<{ slug: string }>()
+    const { cart, tableNumber, restaurant, clearCart } = useCartStore()
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
+    const { isChecking: isSessionChecking, error: sessionError } = useSessionGuard({
+        restaurantSlug: params.slug,
+        restaurant: restaurant ?? undefined,
+    })
 
     const cartTotal = cart.reduce((sum, i) => (sum + i.unitPrice * i.quantity), 0)
 
+
+    if (isSessionChecking) {
+        return (
+            <div className="min-h-screen bg-gray-50 pb-32">
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                    <GeneralHeader
+                        title="View Cart"
+                        subtitle="Checking session"
+                        goBack={true}
+                    />
+                    <div className="rounded-xl bg-white p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-gray-900">Checking session</h2>
+                        <p className="mt-2 text-sm text-gray-500">Verifying table access for this cart.</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (sessionError) {
+        return (
+            <div className="min-h-screen bg-gray-50 pb-32">
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                    <GeneralHeader
+                        title="View Cart"
+                        subtitle="Session unavailable"
+                        goBack={true}
+                    />
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-red-700">Session unavailable</h2>
+                        <p className="mt-2 text-sm text-red-600">{sessionError}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     // Guard — if no restaurant in store, redirect back
     if (!restaurant) {

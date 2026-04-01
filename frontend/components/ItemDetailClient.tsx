@@ -6,13 +6,16 @@ import { useCartStore } from "@/store/cartStore"
 import { useRouter } from "next/navigation"
 import { MenuItem, AddOnOption, CartItem } from "@/types"
 import { buildCustomizationSignature } from "@/lib/itemCustomization"
+import { buildSessionPath } from "@/lib/session"
+import { useSessionGuard } from "@/hooks/useSessionGuard"
 
 type Props = {
+    slug: string
     item: MenuItem
     existingSignature?: string
 }
 
-export default function ItemDetailClient({ item, existingSignature }: Props) {
+export default function ItemDetailClient({ slug, item, existingSignature }: Props) {
     const { tableNumber, restaurant, cart, addToCart, incrementCartItem, decrementCartItem, removeCartItem } = useCartStore();
     const [initialLine, setInitialLine] = useState<CartItem | null>(null);
     const [quantity, setQuantity] = useState<number>(0);
@@ -20,6 +23,12 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
     const [preference, setPreference] = useState<string>("");
     const [submitting, setSubmitting] = useState<boolean>(false);
     const router = useRouter();
+    const {
+        tableNumber: guardedTableNumber,
+        sessionId,
+        isChecking: isSessionChecking,
+        error: sessionError,
+    } = useSessionGuard({ restaurantSlug: slug })
 
     // export type ItemCustomization = {
     //     selectedAddOns: AddOnOption[]
@@ -50,6 +59,42 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
 
     console.log("initial line:", initialLine);
     console.log("initial addons:",initialLine?.selectedAddOns, addOns);
+
+    if (isSessionChecking) {
+        return (
+            <div className="min-h-screen bg-gray-50 pb-32">
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                    <GeneralHeader
+                        title="Item Details"
+                        subtitle="Checking session"
+                        goBack={true}
+                    />
+                    <div className="rounded-xl bg-white p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-gray-900">Checking session</h2>
+                        <p className="mt-2 text-sm text-gray-500">Verifying table access for this item.</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (sessionError) {
+        return (
+            <div className="min-h-screen bg-gray-50 pb-32">
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                    <GeneralHeader
+                        title="Item Details"
+                        subtitle="Session unavailable"
+                        goBack={true}
+                    />
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-red-700">Session unavailable</h2>
+                        <p className="mt-2 text-sm text-red-600">{sessionError}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     function handleAddtoCart() {
         const customization = {
@@ -118,7 +163,7 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
                 />
 
                 <div>
-                    <img className="w-full h-80 object-cover rounded-lg shadow-md" src={item.imageUrl}></img>
+                    <img className="w-full h-80 object-cover rounded-lg shadow-md" src={item.imageUrl} alt={item.name}></img>
                 </div>
                 <div className="border-b border-orange-400 p-3 pr-4 mb-2 flex justify-between items-center">
                     <div>
@@ -198,7 +243,7 @@ export default function ItemDetailClient({ item, existingSignature }: Props) {
                         setSubmitting(true);
                         setTimeout(() => {
                             setSubmitting(false);
-                            router.push(`/r/${restaurant?.slug}?table=${tableNumber}`);
+                            router.push(buildSessionPath(`/r/${restaurant?.slug ?? slug}`, guardedTableNumber ?? tableNumber, sessionId));
                         }, 250); 
                         // small delay to show the "Updating Cart..." overlay, since the cart update is instantaneous in this implementation. In a real implementation with async API calls, you would set submitting to false after the API call completes.
                     }}

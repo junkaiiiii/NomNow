@@ -1,8 +1,9 @@
 'use client'
 
-import { OrderItem, Order, MenuItem, Restaurant } from "@/types"
+import { Order, Restaurant } from "@/types"
 
 import GeneralHeader from "@/components/GeneralHeader"
+import { useSessionGuard } from "@/hooks/useSessionGuard"
 
 type Props = {
     orders: Order[]
@@ -11,7 +12,49 @@ type Props = {
 }
 
 export default function OrdersClient({ orders, table, restaurant }: Props) {
+    const { isChecking: isSessionChecking, error: sessionError } = useSessionGuard({
+        restaurantSlug: restaurant.slug,
+        restaurant,
+    })
+
     console.log(orders);
+
+    if (isSessionChecking) {
+        return (
+            <div className="min-h-screen bg-gray-50 pb-32">
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                    <GeneralHeader
+                        title='Order History'
+                        subtitle='Checking session'
+                        goBack={true}
+                    />
+                    <div className="rounded-xl bg-white p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-gray-900">Checking session</h2>
+                        <p className="mt-2 text-sm text-gray-500">Verifying table access for order history.</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (sessionError) {
+        return (
+            <div className="min-h-screen bg-gray-50 pb-32">
+                <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">
+                    <GeneralHeader
+                        title='Order History'
+                        subtitle='Session unavailable'
+                        goBack={true}
+                    />
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-red-700">Session unavailable</h2>
+                        <p className="mt-2 text-sm text-red-600">{sessionError}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 pb-32">
             <div className="max-w-2xl mx-auto px-4 py-30 space-y-8 ">

@@ -14,6 +14,7 @@ export default async function ItemDetail({params, searchParams}: PageProps){
 // '/restaurant/:slug/itemId/:itemId'
     return (
         <ItemDetailClient 
+            slug={slug}
             item = {item}
             existingSignature= {signature}
         />

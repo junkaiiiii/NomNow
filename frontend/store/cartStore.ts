@@ -6,8 +6,9 @@ import { buildCustomizationSignature, computeUnitPrice, resolveAddOns } from "@/
 type CartStore = {
     cart: CartItem[]
     tableNumber: string | null
+    sessionId: string | null
     restaurant: Restaurant | null
-    setTable: (table: string, restaurant: Restaurant) => void
+    setTable: (table: string, restaurant: Restaurant, sessionId?: string | null) => void
     addToCart: (item: MenuItem, customization?: ItemCustomization) => void
     incrementCartItem: (lineId: string) => void //cart item id
     decrementCartItem: (lineId: string) => void //cart item id
@@ -48,9 +49,10 @@ export const useCartStore = create<CartStore>()(
         (set) => ({
             cart: [],
             tableNumber: null,
+            sessionId: null,
             restaurant: null,
 
-            setTable: (table, restaurant) => set({ tableNumber: table, restaurant }),
+            setTable: (table, restaurant, sessionId = null) => set({ tableNumber: table, restaurant, sessionId }),
 
             addToCart: (item, customization) => set((state) => {
                 // Normalize customization (use default if none provided)
@@ -160,7 +162,7 @@ export const useCartStore = create<CartStore>()(
 
             clearCart: () => set({ cart: [] }),
 
-            clearTable: () => set({ tableNumber: null }),
+            clearTable: () => set({ tableNumber: null, sessionId: null }),
         }),
         {
             name: "nomnow-cart",

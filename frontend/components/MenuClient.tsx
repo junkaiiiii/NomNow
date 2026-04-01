@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useCartStore } from '@/store/cartStore'
-import { useSearchParams } from 'next/navigation'
-import { Restaurant, MenuItem, ItemCustomization, CartItem } from '@/types'
+import { Restaurant, MenuItem } from '@/types'
 import { useRouter } from 'next/navigation'
 import RestaurantHeader from '@/components/RestaurantHeader'
 import CartBar from '@/components/CartBar'
 import ItemCustomizationChoice from '@/components/ItemCustomizationChoice'
+import { useSessionGuard } from '@/hooks/useSessionGuard'
+import { buildSessionPath } from '@/lib/session'
 
 type Props = {
     restaurant: Restaurant
@@ -15,23 +16,16 @@ type Props = {
 }
 
 export default function MenuClient({ restaurant, menu }: Props) {
-    const searchParams = useSearchParams()
-    const tableNumber = searchParams.get('table')
     const router = useRouter();
     const [selectedCategory, setSelectedCategory] = useState<string>('')
     const [selectedItemId, setSelectedItemId] = useState<string>('')
     const [showExistingCustomization, setShowExistingCustomization] = useState<boolean>(false)
+    const { tableNumber, sessionId, isChecking: isSessionChecking, error: sessionError } = useSessionGuard({
+        restaurantSlug: restaurant.slug,
+        restaurant,
+    })
 
-
-    const { cart, addToCart, decrementCartItem, setTable, clearTable } = useCartStore()
-
-    useEffect(() => {
-        if (tableNumber) {
-            setTable(tableNumber, restaurant)
-        } else {
-            clearTable();
-        }
-    }, [tableNumber, restaurant])
+    const { cart, decrementCartItem } = useCartStore()
 
 
     function getQuantity(itemId: string) {
@@ -51,7 +45,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
             return
         }
         // navigate to item detail page for customization
-        router.push(`/r/${restaurant.slug}/item/${item.id}`)
+        router.push(buildSessionPath(`/r/${restaurant.slug}/item/${item.id}`, tableNumber, sessionId))
     }
 
     function handleRemoveItem(itemId: string) {
@@ -84,6 +78,40 @@ export default function MenuClient({ restaurant, menu }: Props) {
 
     console.log(cart)
     console.log(selectedItemId)
+
+    if (isSessionChecking) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-2xl mx-auto px-4 py-30">
+                    <RestaurantHeader
+                        restaurant={restaurant}
+                        goBack={false}
+                    />
+                    <div className="mt-8 rounded-xl bg-white p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-gray-900">Checking session</h2>
+                        <p className="mt-2 text-sm text-gray-500">Verifying table access for this menu.</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (sessionError) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-2xl mx-auto px-4 py-30">
+                    <RestaurantHeader
+                        restaurant={restaurant}
+                        goBack={false}
+                    />
+                    <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-6 text-center shadow-sm">
+                        <h2 className="text-lg font-semibold text-red-700">Session unavailable</h2>
+                        <p className="mt-2 text-sm text-red-600">{sessionError}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
 
     return (
@@ -129,6 +157,7 @@ export default function MenuClient({ restaurant, menu }: Props) {
                                                 <img
                                                     className='w-20 h-20 rounded-md object-cover'
                                                     src={item.imageUrl}
+                                                    alt={item.name}
                                                 />
                                             </div>
                                             <div>
