@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SessionStatus {
+  active
+  billed
+  closed
+}
+
+enum OrderStatus {
+  Pending
+  Preparing
+  Ready
+  Delivered
+}
+
+model Restaurant {
+  id           String         @id @default(cuid())
+  name         String
+  slug         String         @unique
+  address      String
+  isApproved   Boolean        @default(false)
+  // TaxConfig (embedded as fields since it's a simple object)
+  sst          Float          @default(0)
+  serviceTax   Float          @default(0)
+  sstInclusive Boolean        @default(false)
+  menuItems    MenuItem[]
+  tables       Table[]
+  sessions     TableSession[]
+  orders       Order[]
+  createdAt    DateTime       @default(now())
+}
+
+model MenuItem {
+  id              String      @id @default(cuid())
+  restaurantId    String
+  restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
+  name            String
+  description     String
+  price           Float
+  category        String
+  isAvailable     Boolean     @default(true)
+  imageUrl        String      @default("")
+  preferenceHints String[]
+  addOns          AddOn[]
+  orderItems      OrderItem[]
+  createdAt       DateTime    @default(now())
+}
+
+model AddOn {
+  id         String   @id @default(cuid())
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  name       String
+  price      Float    @default(0)
+}
+
+model Table {
+  id               String         @id @default(cuid())
+  restaurantId     String
+  restaurant       Restaurant     @relation(fields: [restaurantId], references: [id])
+  tableNumber      Int
+  currentSessionId String?        // points to active session
+  sessions         TableSession[]
+}
+
+model TableSession {
+  id           String        @id @default(cuid())
+  tableId      String
+  table        Table         @relation(fields: [tableId], references: [id])
+  restaurantId String
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id])
+  tableNumber  Int
+  status       SessionStatus @default(active)
+  orders       Order[]
+  createdAt    DateTime      @default(now())
+  closedAt     DateTime?
+}
+
+model Order {
+  id               String        @id @default(cuid())
+  sessionId        String
+  session          TableSession  @relation(fields: [sessionId], references: [id])
+  restaurantId     String
+  restaurant       Restaurant    @relation(fields: [restaurantId], references: [id])
+  tableNumber      Int
+  status           OrderStatus   @default(Pending)
+  subtotal         Float
+  sstAmount        Float         @default(0)
+  serviceTaxAmount Float         @default(0)
+  total            Float
+  items            OrderItem[]
+  createdAt        DateTime      @default(now())
+}
+
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id])
+  menuItemId     String
+  menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity       Int
+  basePrice      Float
+  unitPrice      Float
+  addOnsPrice    Float    @default(0)
+  preference     String   @default("")
+  subtotal       Float
+  selectedAddOns Json     @default("[]")
+}
