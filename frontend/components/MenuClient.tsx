@@ -26,7 +26,8 @@ export default function MenuClient({ restaurant, menu }: Props) {
     })
 
     const { cart, decrementCartItem } = useCartStore()
-
+    console.log("Item Url: ", menu.map(item=>item.imageUrl))
+    console.log("Cart Item Url: ", cart.map(item=>item.imageUrl))
 
     function getQuantity(itemId: string) {
         return cart

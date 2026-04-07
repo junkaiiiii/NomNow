@@ -32,6 +32,8 @@ export default function CartItemCard({ item, index }: Props) {
     )
     const itemUrl = `${itemPath}${itemPath.includes('?') ? '&' : '?'}signature=${signature}`
 
+
+
     return (
         <div className={`w-full bg-white ${index !== 0 && 'border-t-1'}  border-gray-300 flex justify-between items-center p-5`}>
             <button

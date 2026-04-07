@@ -82,4 +82,16 @@ router.get("/:slug", async (req: Request, res: Response) => {
   }
 })
 
+router.get("/update/imageUrl", async (req, res) => {
+  const updateUrl = await prisma.menuItem.updateMany({
+
+    data: { imageUrl: "https://www.theflavorbender.com/wp-content/uploads/2021/09/Roti-Canai-6501-2.jpg"}
+  })
+
+  console.log("Hello", updateUrl)
+  return res.json({
+    message: "Updated imageUrl for all menu items"
+  })
+})
+
 export default router

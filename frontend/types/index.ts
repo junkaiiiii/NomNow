@@ -4,7 +4,7 @@ export type TaxConfig = {
     sstInclusive: boolean
 }
 
-export type Restaurant = {
+export type Restaurant = TaxConfig & {
     id: string
     name: string
     slug: string

@@ -14,7 +14,7 @@ export type TaxBreakdown = {
 export function calculateTax(subtotal: number, taxConfig: TaxConfig): TaxBreakdown {
     //subtotal = without tax
     //total = included tax
-    const basePrice = subtotal / (1 + (taxConfig.sstInclusive ? taxConfig.sst : 0 ))
+    const basePrice = subtotal / (1 + (taxConfig?.sstInclusive ? taxConfig.sst : 0 ))
 
     return {
         subtotal: basePrice,

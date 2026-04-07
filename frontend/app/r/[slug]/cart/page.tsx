@@ -5,12 +5,15 @@ import CartItemCard from "@/components/CartItemCard";
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore"
 import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { calculateTax } from "@/lib/taxCalculator";
 import { ShoppingCart } from "lucide-react";
 import { useSessionGuard } from "@/hooks/useSessionGuard";
 
 export default function CartPage() {
     const params = useParams<{ slug: string }>()
+    const searchParams = useSearchParams()
+    const sessionId = searchParams.get('sessionId')  || undefined
     const { cart, tableNumber, restaurant, clearCart } = useCartStore()
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
@@ -84,10 +87,16 @@ export default function CartPage() {
             </div>
         )
     }
-
-    console.log(restaurant)
-    const priceBreakdown = calculateTax(cartTotal, restaurant.taxConfig);
-    console.log(priceBreakdown)
+    // export type TaxConfig = {
+//     sst: number //rate
+//     serviceTax: number //rate
+//     sstInclusive: boolean
+// }
+    const priceBreakdown = calculateTax(cartTotal, {
+        sst: restaurant.sst,
+        serviceTax: restaurant.serviceTax,
+        sstInclusive: restaurant.sstInclusive
+    });
 
     console.log(cart)
 
@@ -124,7 +133,7 @@ export default function CartPage() {
             //     const { slug, table, items } = req.body
 
             // const res = await fetch(`http://localhost:5001/api/menu/${slug}`)
-            console.log("Submitting order with items: ", items, `PORT: ${process.env.NEXT_PUBLIC}`)
+            console.log("Submitting order with items: ", items, `PORT: ${process.env.NEXT_PUBLIC_API_URL}`)
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
                 headers: { 'Content-Type': 'application/json' },
                 method: 'POST',
@@ -136,7 +145,8 @@ export default function CartPage() {
                         sstAmount: priceBreakdown.sstAmount,
                         serviceTaxAmount: priceBreakdown.serviceTaxAmount,
                         subtotal: priceBreakdown.subtotal,
-                        total: priceBreakdown.total
+                        total: priceBreakdown.total,
+                        sessionId: sessionId
                     }
                 )
             })
@@ -155,7 +165,6 @@ export default function CartPage() {
         }
 
     }
-
 
     return (
 
@@ -176,6 +185,7 @@ export default function CartPage() {
                             </div>
                         ) :
                             cart.map((item, index) => (
+                                
                                 <CartItemCard
                                     item={item}
                                     key={item.id}
@@ -197,11 +207,11 @@ export default function CartPage() {
                     ))}
 
                     <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between text-sm text-gray-600">
-                        <span>SST ({restaurant.taxConfig.sst * 100}%) {priceBreakdown.sstInclusive ? ' (Inclusive)' : ''}: </span>
+                        <span>SST ({restaurant.sst * 100}%) {priceBreakdown.sstInclusive ? ' (Inclusive)' : ''}: </span>
                         <span>RM {priceBreakdown.sstAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                        <span>Service Tax ({restaurant.taxConfig.serviceTax * 100})%: </span>
+                        <span>Service Tax ({restaurant.serviceTax * 100})%: </span>
                         <span>RM {priceBreakdown.serviceTaxAmount.toFixed(2)}</span>
                     </div>
 

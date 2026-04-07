@@ -146,6 +146,17 @@ router.post("/", async (req: Request, res: Response) => {
     total,
   } = req.body as CreateOrderRequestBody
 
+  // body: JSON.stringify(
+  //   {
+  //       restaurantId: restaurant.id,
+  //       table: parseInt(tableNumber),
+  //       items: items,
+  //       sstAmount: priceBreakdown.sstAmount,
+  //       serviceTaxAmount: priceBreakdown.serviceTaxAmount,
+  //       subtotal: priceBreakdown.subtotal,
+  //       total: priceBreakdown.total
+  //   }
+
   if (!restaurantId || !sessionId || tableNumber === undefined || tableNumber === null || !items || items.length === 0) {
     return res.status(400).json({ message: "restaurantId, sessionId, tableNumber and items are required" })
   }
