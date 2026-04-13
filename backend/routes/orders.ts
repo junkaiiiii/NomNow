@@ -64,7 +64,7 @@ router.get("/restaurant/:slug/table/:table", async (req, res) => {
       return res.status(400).json({ message: "Table must be a valid number" })
     }
 
-    const result = await prisma.order.findFirst({
+    const result = await prisma.order.findMany({
       where: {
         restaurantId: restaurant?.id,
         tableNumber: tableNumber
@@ -97,7 +97,7 @@ router.get("/restaurant/:slug/table/:table", async (req, res) => {
     return res.json(result)
   } catch (error) {
     console.error(error)
-    return res.status(500).json({ message: "Internal server error" })
+    return res.status(500).json({ success:false, message: "Internal server error" })
   }
 })
 

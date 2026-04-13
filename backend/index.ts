@@ -4,6 +4,8 @@ import express, { Request, Response } from "express"
 import menuRoutes from "./routes/menu"
 import orderRoutes from "./routes/orders"
 import restaurantRoutes from "./routes/restaurant"
+import userRoutes from "./routes/user"
+// same as import { router as userRoutes } from "./routes/user"
 
 const app = express()
 const PORT = Number(process.env.PORT) || 5002
@@ -16,6 +18,7 @@ app.use(express.json())
 app.use("/api/menu", menuRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/restaurant", restaurantRoutes)
+app.use("/api/user", userRoutes)
 
 // Health check
 app.get("/", (_req: Request, res: Response) => {
