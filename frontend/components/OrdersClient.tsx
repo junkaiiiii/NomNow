@@ -100,7 +100,7 @@ export default function OrdersClient({ orders, table, restaurant }: Props) {
                                 <span className="text-gray-500">RM {order.subtotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between ">
-                                <span className="text-gray-500  ">SST {restaurant.taxConfig.sstInclusive && '(inclusive)'}</span>
+                                <span className="text-gray-500  ">SST {restaurant.sstInclusive && '(inclusive)'}</span>
                                 <span className="text-gray-500">RM {order.sstAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between ">

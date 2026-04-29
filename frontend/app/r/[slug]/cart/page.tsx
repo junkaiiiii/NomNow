@@ -133,6 +133,16 @@ export default function CartPage() {
             //     const { slug, table, items } = req.body
 
             // const res = await fetch(`http://localhost:5001/api/menu/${slug}`)
+            console.log({
+                restaurantId: restaurant.id,
+                tableNumber: parseInt(tableNumber),
+                items: items,
+                sstAmount: priceBreakdown.sstAmount,
+                serviceTaxAmount: priceBreakdown.serviceTaxAmount,
+                subtotal: priceBreakdown.subtotal,
+                total: priceBreakdown.total,
+                sessionId: sessionId
+            })
             console.log("Submitting order with items: ", items, `PORT: ${process.env.NEXT_PUBLIC_API_URL}`)
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
                 headers: { 'Content-Type': 'application/json' },
@@ -140,7 +150,7 @@ export default function CartPage() {
                 body: JSON.stringify(
                     {
                         restaurantId: restaurant.id,
-                        table: parseInt(tableNumber),
+                        tableNumber: parseInt(tableNumber),
                         items: items,
                         sstAmount: priceBreakdown.sstAmount,
                         serviceTaxAmount: priceBreakdown.serviceTaxAmount,

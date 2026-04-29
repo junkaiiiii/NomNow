@@ -97,7 +97,7 @@ router.get("/restaurant/:slug/table/:table", async (req, res) => {
     return res.json(result)
   } catch (error) {
     console.error(error)
-    return res.status(500).json({ success:false, message: "Internal server error" })
+    return res.status(500).json({ success: false, message: "Internal server error" })
   }
 })
 
@@ -143,7 +143,7 @@ router.post("/", async (req: Request, res: Response) => {
     sstAmount,
     serviceTaxAmount,
     subtotal,
-    total,
+    total
   } = req.body as CreateOrderRequestBody
 
   // body: JSON.stringify(
@@ -156,11 +156,10 @@ router.post("/", async (req: Request, res: Response) => {
   //       subtotal: priceBreakdown.subtotal,
   //       total: priceBreakdown.total
   //   }
-
-  if (!restaurantId || !sessionId || tableNumber === undefined || tableNumber === null || !items || items.length === 0) {
+  if (!restaurantId || !sessionId || !tableNumber || !items || items.length === 0) {
     return res.status(400).json({ message: "restaurantId, sessionId, tableNumber and items are required" })
   }
-
+  
   try {
     // Verify restaurant exists
     const restaurant = await prisma.restaurant.findUnique({
