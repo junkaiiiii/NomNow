@@ -97,6 +97,79 @@ router.get("/:slug/session/availability", async (req, res) => {
   }
 })
 
+router.get("/:slug/tables", async (req, res) => {
+  const slug = req.params.slug as string
+
+  try {
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { slug },
+      include: {
+        tables: {
+          orderBy: { tableNumber: "asc" },
+        },
+        sessions: {
+          where: { status: "active" },
+          orderBy: { createdAt: "desc" },
+          include: {
+            orders: {
+              include: {
+                items: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" })
+    }
+
+    if (!restaurant.isApproved) {
+      return res.status(403).json({ message: "Restaurant not approved" })
+    }
+
+    const activeSessionsByTable = new Map(
+      restaurant.sessions.map((session) => [session.tableId, session]),
+    )
+
+    const tables = restaurant.tables.map((table) => {
+      const activeSession = activeSessionsByTable.get(table.id)
+
+      return {
+        ...table,
+        activeSession: activeSession
+          ? {
+            id: activeSession.id,
+            status: activeSession.status,
+            createdAt: activeSession.createdAt,
+            orderCount: activeSession.orders.length,
+            total: activeSession.orders.reduce((sum, order) => sum + order.total, 0),
+            itemCount: activeSession.orders.reduce(
+              (sum, order) =>
+                sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0),
+              0,
+            ),
+          }
+          : null,
+      }
+    })
+
+    return res.json({
+      restaurant: {
+        id: restaurant.id,
+        name: restaurant.name,
+        slug: restaurant.slug,
+        address: restaurant.address,
+      },
+      tables,
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ message: "Internal server error" })
+  }
+})
+
 router.get("/:slug", async (req, res) => {
   const slug = req.params.slug as string
 

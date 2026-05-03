@@ -70,7 +70,7 @@ export type Table = {
     id: string
     restaurantId: string
     tableNumber: number
-    currentSessionId: string
+    currentSessionId: string | null
 }
 
 
@@ -83,6 +83,17 @@ export type TableSession = {
     createdAt: string
     closedAt: string | null
   }
+
+export type DashboardTable = Table & {
+    activeSession: {
+        id: string
+        status: 'active' | 'billed' | 'closed'
+        createdAt: string
+        orderCount: number
+        itemCount: number
+        total: number
+    } | null
+}
 
 // const tableSessions = [
 //     { 
