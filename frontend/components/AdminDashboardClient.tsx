@@ -32,7 +32,7 @@ const getDefaultPositions = (tables: DashboardTable[]) => {
     const gapXPercent = (100 / columns) - 3
 
     const rows = Math.ceil(tables.length / columns)
-    const gapYPercent = rows > 1 ? (100 / rows) - 3 : 20
+    const gapYPercent = (100 / rows) - 3
 
     tables.forEach((table, index) => {
         console.log(index)
@@ -57,6 +57,50 @@ export default function AdminDashboardClient({ restaurant, tables }: Props) {
     const [positions, setPositions] = useState<Record<string, LayoutPosition>>(defaultPositions)
     const [isEditing, setIsEditing] = useState<boolean>(false)
     const [dragging, setDragging] = useState<TDragging | null>(null)
+
+    useEffect(() => {
+        if (!dragging) {
+            return
+        }
+
+        // prevent "active drag" is possible null
+        const activeDrag = dragging
+
+        function handlePointerMove(e: PointerEvent) {
+            const board = boardRef.current
+            const boardRect = board?.getBoundingClientRect()
+
+            if (!boardRect) {
+                return
+            }
+
+            const newX = ((e.clientX - boardRect?.left) / boardRect.width * 100) - activeDrag.offsetX
+            const newY = ((e.clientY - boardRect?.top) / boardRect.height * 100) - activeDrag.offsetY
+
+            setPositions(cur => (
+                {
+                    ...cur,
+                    [activeDrag.tableId]: { x: newX, y: newY }
+                }
+            ))
+        }
+
+        function handlePointerUp(e: PointerEvent) {
+            setDragging(null)
+        }
+
+        window.addEventListener('pointermove', handlePointerMove)
+        window.addEventListener('pointerup', handlePointerUp)
+
+        // clean up
+        return (
+            () => {
+                window.removeEventListener('pointermove', handlePointerMove)
+                window.removeEventListener('pointerup', handlePointerUp)
+            }
+        )
+    }
+        , [dragging])
 
     function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>, tableId: string) {
         if (!isEditing) {
